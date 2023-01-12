@@ -1,4 +1,4 @@
-namespace ESD.ApiClient.Crystal;
+namespace ESD.ApiClient.Crystal.Models;
 
 public class CreateRunResponse
 {

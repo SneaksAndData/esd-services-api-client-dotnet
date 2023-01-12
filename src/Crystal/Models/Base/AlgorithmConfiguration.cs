@@ -1,6 +1,4 @@
-﻿using Crystal.Models.Base;
-
-namespace ESD.ApiClient.Crystal.Models.Base
+﻿namespace ESD.ApiClient.Crystal.Models.Base
 {
     /// <summary>
     /// Static algorithm configuration.

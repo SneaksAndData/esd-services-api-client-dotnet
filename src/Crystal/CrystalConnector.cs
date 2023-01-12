@@ -1,34 +1,46 @@
-﻿using ESD.ApiClient.Boxer;
-using Newtonsoft.Json;
+﻿using System.Text;
+using System.Text.Json;
+using ESD.ApiClient.Boxer.Base;
+using ESD.ApiClient.Crystal.Models;
+using ESD.ApiClient.Crystal.Models.Base;
 
 namespace ESD.ApiClient.Crystal;
 
-public class CrystalConnector: Base.ApiClient
+public class CrystalConnector : Base.ApiClient, ICrystalConnector
 {
     private readonly Uri baseUri;
-    private readonly string apiVersion;
 
-    public CrystalConnector(
-        HttpClient httpClient,
-        IBoxerTokenProvider boxerTokenProvider,
-        Uri baseUri,
-        string apiVersion
-        ) : base(httpClient, boxerTokenProvider)
+    /// <summary>
+    /// Creates new instance
+    /// </summary>
+    /// <param name="baseUri">Crystal instance URI</param>
+    /// <param name="apiVersion">Crystal API version</param>
+    /// <param name="httpClient">Http client</param>
+    /// <param name="boxerTokenProvider">Boxer token provider instance</param>
+    public CrystalConnector(Uri baseUri, string apiVersion, HttpClient httpClient,
+        IBoxerTokenProvider boxerTokenProvider) : base(httpClient, boxerTokenProvider)
     {
-        this.baseUri = baseUri;
-        this.apiVersion = apiVersion;
+        this.baseUri = new Uri(baseUri, new Uri(apiVersion, UriKind.Relative));
     }
 
-    public async Task<CreateRunResponse?> CreateRun(string algorithm, 
-        Func<Task<string>> getTokenAsync,
+    /// <inheritdoc/>
+    public async Task<CreateRunResponse?> CreateRunAsync(string algorithm, JsonElement payload,
+        AlgorithmConfiguration customConfiguration, Func<Task<string>> getTokenAsync,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var requestUri = new Uri(baseUri, this.apiVersion);
+        var requestUri = new Uri(baseUri, new Uri(algorithm, UriKind.Relative));
+        var algorithmRequest = new AlgorithmRequest()
+        {
+            AlgorithmParameters = payload,
+            CustomConfiguration = customConfiguration
+        };
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+        request.Content =
+            new StringContent(JsonSerializer.Serialize(algorithmRequest), Encoding.UTF8, "application/json");
         var response = SendBoxerAuthenticatedRequestAsync(request, getTokenAsync, cancellationToken);
         response.Result.EnsureSuccessStatusCode();
-        return JsonConvert.DeserializeObject<CreateRunResponse>(await response.Result.Content.ReadAsStringAsync());
+        var responseString = await response.Result.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<CreateRunResponse>(responseString);
     }
-
 }
