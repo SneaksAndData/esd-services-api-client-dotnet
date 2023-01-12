@@ -2,7 +2,7 @@
 using ESD.ApiClient.Crystal.Models;
 using ESD.ApiClient.Crystal.Models.Base;
 
-namespace ESD.ApiClient.Crystal;
+namespace ESD.ApiClient.Crystal.Base;
 
 public interface ICrystalConnector
 {

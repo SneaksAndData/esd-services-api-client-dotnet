@@ -3,7 +3,7 @@
 public class ApiVersions
 {
    /// <summary>
-   /// Initial version of public API
+   /// Boxer token authentication and updated API for run submission and result read
    /// </summary>
-   public const string Api12 = "v1.2";
+   public const string v1_2 = "v1.2";
 }

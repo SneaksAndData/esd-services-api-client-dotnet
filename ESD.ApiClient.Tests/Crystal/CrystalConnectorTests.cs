@@ -1,26 +1,27 @@
 ﻿using System;
-using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ESD.ApiClient.Boxer;
 using ESD.ApiClient.Crystal;
+using ESD.ApiClient.Crystal.Base;
 using ESD.ApiClient.Crystal.Models;
 using ESD.ApiClient.Crystal.Models.Base;
 using Xunit;
 
 namespace ESD.ApiClient.Tests.Crystal;
 
-public class CrystalConnectorTests: IClassFixture<MockServiceFixture>
+public class CrystalConnectorTests: IClassFixture<MockServiceFixture>, IClassFixture<LoggerFixture>
 {
     private readonly ICrystalConnector crystalConnector;
 
-    public CrystalConnectorTests(MockServiceFixture mockServiceFixture)
+    public CrystalConnectorTests(MockServiceFixture mockServiceFixture, LoggerFixture loggerFixture)
     {
-        var boxerConnector = new BoxerConnector(new Uri("https://boxer.example.com"), "provider",
-            mockServiceFixture.BoxerMockHttpClient);
-        this.crystalConnector = new CrystalConnector(new Uri("https://crystal.example.com"), ApiVersions.Api12,
-            mockServiceFixture.CrystalMockHttpClient, boxerConnector);
+        var boxerConnector = new BoxerConnector(new Uri("https://boxer.example.com"), 
+            "provider", mockServiceFixture.BoxerMockHttpClient);
+        this.crystalConnector = new CrystalConnector(new Uri("https://crystal.example.com"), ApiVersions.v1_2,
+            mockServiceFixture.CrystalMockHttpClient, boxerConnector,
+            loggerFixture.Factory.CreateLogger(nameof(CrystalConnectorTests)));
     }
 
     [Fact]

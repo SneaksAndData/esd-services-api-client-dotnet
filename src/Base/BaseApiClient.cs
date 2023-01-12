@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using ESD.ApiClient.Boxer.Base;
+using Microsoft.Extensions.Logging;
 using Polly;
 
 namespace ESD.ApiClient.Base;
@@ -8,20 +9,23 @@ namespace ESD.ApiClient.Base;
 /// <summary>
 /// Base class for all API clients
 /// </summary>
-public abstract class ApiClient
+public abstract class BaseApiClient
 {
     private readonly HttpClient httpClient;
-    private readonly IBoxerTokenProvider _boxerTokenProvider;
+    private readonly IBoxerTokenProvider boxerTokenProvider;
+    private readonly ILogger logger;
 
     /// <summary>
     /// Creates new instance
     /// </summary>
     /// <param name="httpClient">Http client</param>
     /// <param name="boxerTokenProvider">Token provider</param>
-    protected ApiClient(HttpClient httpClient, IBoxerTokenProvider boxerTokenProvider)
+    /// <param name="logger"></param>
+    protected BaseApiClient(HttpClient httpClient, IBoxerTokenProvider boxerTokenProvider, ILogger logger)
     {
         this.httpClient = httpClient;
-        this._boxerTokenProvider = boxerTokenProvider;
+        this.boxerTokenProvider = boxerTokenProvider;
+        this.logger = logger;
     }
 
     /// <summary>
@@ -44,15 +48,18 @@ public abstract class ApiClient
                 {
                     if (result.Result.StatusCode == HttpStatusCode.Unauthorized)
                     {
-                        var token = await this._boxerTokenProvider.GetTokenAsync(refresh: true, getExternalTokenAsync, cancellationToken);
+                        this.logger.LogInformation("Refreshing access token");
+                        var token = await this.boxerTokenProvider.GetTokenAsync(refresh: true, getExternalTokenAsync, cancellationToken);
                         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    }
+                    else
+                    {
+                        logger.LogError(result.Exception, "Request error: {ResultStatusCode}, {ResultReasonPhrase}", 
+                            result.Result.StatusCode, result.Result.ReasonPhrase);
                     }
                 }
             )
-            .ExecuteAsync(async () =>
-            {
-                return await httpClient.SendAsync(CloneRequest(request), cancellationToken);
-            });
+            .ExecuteAsync(async () => await httpClient.SendAsync(CloneRequest(request), cancellationToken));
         return response;
     }
 
