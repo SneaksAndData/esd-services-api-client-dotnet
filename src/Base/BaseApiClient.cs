@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
+using System.Text.Json;
 using ESD.ApiClient.Boxer.Base;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -11,20 +12,22 @@ namespace ESD.ApiClient.Base;
 /// </summary>
 public abstract class BaseApiClient
 {
+    protected static JsonSerializerOptions JsonSerializerOptions => new() { PropertyNameCaseInsensitive = true };
+    
     private readonly HttpClient httpClient;
-    private readonly IBoxerTokenProvider boxerTokenProvider;
+    private readonly IBoxerConnector _boxerConnector;
     private readonly ILogger logger;
 
     /// <summary>
     /// Creates new instance
     /// </summary>
     /// <param name="httpClient">Http client</param>
-    /// <param name="boxerTokenProvider">Token provider</param>
+    /// <param name="boxerConnector">Token provider</param>
     /// <param name="logger"></param>
-    protected BaseApiClient(HttpClient httpClient, IBoxerTokenProvider boxerTokenProvider, ILogger logger)
+    protected BaseApiClient(HttpClient httpClient, IBoxerConnector boxerConnector, ILogger logger)
     {
         this.httpClient = httpClient;
-        this.boxerTokenProvider = boxerTokenProvider;
+        this._boxerConnector = boxerConnector;
         this.logger = logger;
     }
 
@@ -32,11 +35,9 @@ public abstract class BaseApiClient
     /// Executes Http request with Boxer authentication and renews token if needed
     /// </summary>
     /// <param name="request">Prepared HTTP request</param>
-    /// <param name="getExternalTokenAsync">Returns external Authorization provider access token</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Http response</returns>
     protected async Task<HttpResponseMessage> SendBoxerAuthenticatedRequestAsync(HttpRequestMessage request,
-        Func<Task<string>> getExternalTokenAsync,
         CancellationToken cancellationToken)
     {
         var response = await Policy
@@ -46,21 +47,27 @@ public abstract class BaseApiClient
                 retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                 onRetryAsync: async (result, _) =>
                 {
-                    if (result.Result.StatusCode == HttpStatusCode.Unauthorized)
-                    {
-                        this.logger.LogInformation("Refreshing access token");
-                        var token = await this.boxerTokenProvider.GetTokenAsync(refresh: true, getExternalTokenAsync, cancellationToken);
-                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                    }
-                    else
-                    {
-                        logger.LogError(result.Exception, "Request error: {ResultStatusCode}, {ResultReasonPhrase}", 
-                            result.Result.StatusCode, result.Result.ReasonPhrase);
-                    }
+                    logger.LogError(result.Exception, "Request error: {ResultStatusCode}, {ResultReasonPhrase}", 
+                        result.Result.StatusCode, result.Result.ReasonPhrase);
                 }
             )
-            .ExecuteAsync(async () => await httpClient.SendAsync(CloneRequest(request), cancellationToken));
+            .ExecuteAsync(async () => await ExecuteHttpRequest(request, cancellationToken));
         return response;
+    }
+
+    private async Task<HttpResponseMessage> ExecuteHttpRequest(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var responce = await httpClient.SendAsync(CloneRequest(request), cancellationToken);
+        if (responce.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            var newRequest = CloneRequest(request);
+            this.logger.LogInformation("Refreshing access token");
+            var token = await this._boxerConnector.GetTokenAsync(refresh: true, cancellationToken);
+            newRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            responce = await httpClient.SendAsync(newRequest, cancellationToken);
+        }
+
+        return responce;
     }
 
     private static HttpRequestMessage CloneRequest(HttpRequestMessage request)
@@ -76,4 +83,5 @@ public abstract class BaseApiClient
 
         return newRequest;
     }
+
 }

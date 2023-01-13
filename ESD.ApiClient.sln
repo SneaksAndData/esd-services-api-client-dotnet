@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESD.ApiClient", "src\ESD.Ap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESD.ApiClient.Tests", "ESD.ApiClient.Tests\ESD.ApiClient.Tests.csproj", "{604FAAE9-5E46-45F8-8700-E94BAC79999D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ESD.ApiClient.Tests.Acceptance", "ESD.ApiClient.Tests.Acceptance\ESD.ApiClient.Tests.Acceptance.csproj", "{2D821FB7-4FC2-475C-B3B8-3AF24E3927F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{604FAAE9-5E46-45F8-8700-E94BAC79999D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{604FAAE9-5E46-45F8-8700-E94BAC79999D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{604FAAE9-5E46-45F8-8700-E94BAC79999D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D821FB7-4FC2-475C-B3B8-3AF24E3927F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D821FB7-4FC2-475C-B3B8-3AF24E3927F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D821FB7-4FC2-475C-B3B8-3AF24E3927F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D821FB7-4FC2-475C-B3B8-3AF24E3927F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

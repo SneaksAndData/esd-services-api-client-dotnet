@@ -1,12 +1,15 @@
-﻿using System;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ESD.ApiClient.Boxer;
+using ESD.ApiClient.Config;
 using ESD.ApiClient.Crystal;
 using ESD.ApiClient.Crystal.Base;
 using ESD.ApiClient.Crystal.Models;
 using ESD.ApiClient.Crystal.Models.Base;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
 using Xunit;
 
 namespace ESD.ApiClient.Tests.Crystal;
@@ -17,9 +20,21 @@ public class CrystalConnectorTests: IClassFixture<MockServiceFixture>, IClassFix
 
     public CrystalConnectorTests(MockServiceFixture mockServiceFixture, LoggerFixture loggerFixture)
     {
-        var boxerConnector = new BoxerConnector(new Uri("https://boxer.example.com"), 
-            "provider", mockServiceFixture.BoxerMockHttpClient);
-        this.crystalConnector = new CrystalConnector(new Uri("https://crystal.example.com"), ApiVersions.v1_2,
+        var boxerConnector = new BoxerConnector(
+            Options.Create(new BoxerConnectorOptions
+            {
+                AuthorizationProvider = "example.com",
+                BaseUri = "https://boxer.example.com"
+            }),
+            mockServiceFixture.BoxerMockHttpClient,
+            Mock.Of<ILogger<BoxerConnector>>(),
+            _ => Task.FromResult(string.Empty));
+        this.crystalConnector = new CrystalConnector(Options.Create(new CrystalConnectorOptions
+            {
+                BaseUri = "https://crystal.example.com",
+                ApiVersion = ApiVersions.v1_2
+                
+            }),
             mockServiceFixture.CrystalMockHttpClient, boxerConnector,
             loggerFixture.Factory.CreateLogger(nameof(CrystalConnectorTests)));
     }
@@ -32,7 +47,6 @@ public class CrystalConnectorTests: IClassFixture<MockServiceFixture>, IClassFix
             "algorithm",
             payload,
             new AlgorithmConfiguration(),
-            () => Task.FromResult(string.Empty),
             CancellationToken.None);
         Assert.NotNull(result);
         Assert.Equal("1", result!.RequestId);
