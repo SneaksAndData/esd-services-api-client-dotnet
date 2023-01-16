@@ -40,7 +40,7 @@ public class CrystalConnector : BaseApiClient, ICrystalConnector
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
         request.Content =
             new StringContent(JsonSerializer.Serialize(algorithmRequest), Encoding.UTF8, "application/json");
-        var response = SendBoxerAuthenticatedRequestAsync(request, cancellationToken);
+        var response = await SendBoxerAuthenticatedRequestAsync(request, cancellationToken);
         response.Result.EnsureSuccessStatusCode();
         var responseString = await response.Result.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<CreateRunResponse>(responseString, JsonSerializerOptions);
