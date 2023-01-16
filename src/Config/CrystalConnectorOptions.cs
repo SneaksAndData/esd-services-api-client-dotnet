@@ -11,5 +11,5 @@ public class CrystalConnectorOptions
     /// <summary>
     /// Api version
     /// </summary>
-    public string? ApiVersion { get; set; }
+    public string ApiVersion { get; set; }
 }
