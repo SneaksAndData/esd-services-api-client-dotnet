@@ -1,4 +1,4 @@
-# esd-services-api-client-dotnet
+# ESD.ApiClient
 
 This repo contains clients for Sneaks&Data services:
 
