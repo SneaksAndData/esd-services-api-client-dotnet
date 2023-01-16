@@ -7,7 +7,7 @@ using Polly;
 
 namespace ESD.ApiClient.Boxer;
 
-public class BoxerConnector : IBoxerConnector
+public class BoxerTokenProvider : IBoxerConnector
 {
    private readonly Uri authProvider;
    private readonly Uri baseUri;
