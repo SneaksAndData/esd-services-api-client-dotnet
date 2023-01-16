@@ -58,7 +58,7 @@ public abstract class SndApiClient
             this.logger.LogInformation("Refreshing access token");
             var token = await this._boxerConnector.GetTokenAsync(refresh: true, cancellationToken);
             newRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            responce = await httpClient.SendAsync(newRequest, cancellationToken);
+            response = await httpClient.SendAsync(newRequest, cancellationToken);
         }
 
         return responce;
