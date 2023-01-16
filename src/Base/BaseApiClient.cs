@@ -5,7 +5,7 @@ using ESD.ApiClient.Boxer.Base;
 using Microsoft.Extensions.Logging;
 using Polly;
 
-namespace ESD.ApiClient.Base;
+namespace SnD.ApiClient.Base;
 
 /// <summary>
 /// Base class for all API clients
