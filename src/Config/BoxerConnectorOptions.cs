@@ -10,5 +10,5 @@ public class BoxerConnectorOptions
     /// <summary>
     /// Name of authorization provider
     /// </summary>
-    public string? IdentityProvider { get; set; }
+    public string IdentityProvider { get; set; }
 }
