@@ -5,6 +5,13 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>latest</LangVersion>
         <RootNamespace>SnD.ApiClient</RootNamespace>
+        <OutputType>Library</OutputType>
+        <PackageId>SnD.ApiClient</PackageId>
+        <Authors>Sneaks&amp;Data</Authors>
+        <Version>0.0.0</Version>
+        <Company>Sneaks&amp;Data</Company>
+        <RepositoryUrl>https://github.com/SneaksAndData/esd-services-api-client-dotnet</RepositoryUrl>
+        <PackageDescription>Client libraries for Sneaks&amp;Data services</PackageDescription>
     </PropertyGroup>
 
     <ItemGroup>
