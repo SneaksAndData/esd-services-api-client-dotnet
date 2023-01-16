@@ -31,7 +31,7 @@ public abstract class SndApiClient
     /// <param name="request">Prepared HTTP request</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Http response</returns>
-    protected async Task<HttpResponseMessage> SendBoxerAuthenticatedRequestAsync(HttpRequestMessage request,
+    protected async Task<HttpResponseMessage> SendAuthenticatedRequestAsync(HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
         var response = await Policy
