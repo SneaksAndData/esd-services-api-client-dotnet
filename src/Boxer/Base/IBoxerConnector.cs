@@ -1,6 +1,6 @@
 namespace ESD.ApiClient.Boxer.Base;
 
-public interface IBoxerConnector
+public interface IJwtTokenExchangeProvider
 {
     /// <summary>
     /// Authenticates with external Authorization provider and return Boxer token
