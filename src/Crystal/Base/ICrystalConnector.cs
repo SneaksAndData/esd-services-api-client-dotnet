@@ -24,5 +24,5 @@ public interface ICrystalConnector
     /// <param name="requestId">Request ID received form <see cref="CreateRunAsync"/></param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>RunResult instance</returns>
-    public Task<RunResult?> QueryResultAsync(string algorithm, string requestId, CancellationToken cancellationToken = default);
+    public Task<RunResult?> GetResultAsync(string algorithm, string requestId, CancellationToken cancellationToken = default);
 }
