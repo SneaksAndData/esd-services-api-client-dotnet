@@ -1,13 +1,13 @@
 ﻿using System.Net.Http.Headers;
-using ESD.ApiClient.Boxer.Base;
-using ESD.ApiClient.Config;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
+using SnD.ApiClient.Boxer.Base;
+using SnD.ApiClient.Config;
 
-namespace ESD.ApiClient.Boxer;
+namespace SnD.ApiClient.Boxer;
 
-public class BoxerTokenProvider : IBoxerConnector
+public class BoxerTokenProvider : IJwtTokenExchangeProvider
 {
    private readonly Uri authProvider;
    private readonly Uri baseUri;
@@ -23,8 +23,8 @@ public class BoxerTokenProvider : IBoxerConnector
    /// <param name="httpClient">Http client</param>
    /// <param name="logger">Logger for boxer connector</param>
    /// <param name="getExternalTokenAsync">Function that returns external authentication token</param>
-   public BoxerConnector(IOptions<BoxerConnectorOptions> boxerConnectorOptions, HttpClient httpClient,
-      ILogger<BoxerConnector> logger, Func<CancellationToken, Task<string>> getExternalTokenAsync)
+   public BoxerTokenProvider(IOptions<BoxerConnectorOptions> boxerConnectorOptions, HttpClient httpClient,
+      ILogger<BoxerTokenProvider> logger, Func<CancellationToken, Task<string>> getExternalTokenAsync)
    {
       var authorizationProvider = boxerConnectorOptions.Value.IdentityProvider
                                   ?? throw new ArgumentNullException(nameof(BoxerConnectorOptions.IdentityProvider));

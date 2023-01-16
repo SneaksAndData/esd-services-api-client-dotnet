@@ -4,17 +4,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Identity;
-using ESD.ApiClient.Config;
-using ESD.ApiClient.Crystal.Base;
 using ESD.ApiClient.Crystal.Models.Base;
-using ESD.ApiClient.Extensions;
-using ESD.ApiClient.Tests.Acceptance.Config;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SnD.ApiClient.Config;
+using SnD.ApiClient.Crystal.Base;
+using SnD.ApiClient.Extensions;
+using SnD.ApiClient.Tests.Acceptance.Config;
 using Xunit;
 
-namespace ESD.ApiClient.Tests.Acceptance.Crystal;
+namespace SnD.ApiClient.Tests.Acceptance.Crystal;
 
 
 public class AcceptanceTests
@@ -62,7 +62,7 @@ public class AcceptanceTests
         do
         {
             await Task.Delay(5000);
-            runResult = await crystalConnector.QueryResultAsync(configuration.AlgorithmName, response!.RequestId);
+            runResult = await crystalConnector.GetResultAsync(configuration.AlgorithmName, response!.RequestId);
         } while (runResult != null && runResult.Status != RequestLifeCycleStage.COMPLETED);
     }
 }

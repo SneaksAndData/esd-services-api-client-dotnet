@@ -1,9 +1,9 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using ESD.ApiClient.Boxer.Base;
 using Microsoft.Extensions.Logging;
 using Polly;
+using SnD.ApiClient.Boxer.Base;
 
 namespace SnD.ApiClient.Base;
 
@@ -15,10 +15,10 @@ public abstract class SndApiClient
     protected static JsonSerializerOptions JsonSerializerOptions => new() { PropertyNameCaseInsensitive = true };
     
     private readonly HttpClient httpClient;
-    private readonly IBoxerConnector _boxerConnector;
+    private readonly IJwtTokenExchangeProvider _boxerConnector;
     private readonly ILogger logger;
 
-    protected BaseApiClient(HttpClient httpClient, IBoxerConnector boxerConnector, ILogger logger)
+    protected SndApiClient(HttpClient httpClient, IJwtTokenExchangeProvider boxerConnector, ILogger logger)
     {
         this.httpClient = httpClient;
         this._boxerConnector = boxerConnector;
@@ -39,10 +39,11 @@ public abstract class SndApiClient
             .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
             .WaitAndRetryAsync(3,
                 retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                onRetryAsync: async (result, _) =>
+                onRetryAsync: (result, _) =>
                 {
                     logger.LogError(result.Exception, "Request error: {ResultStatusCode}, {ResultReasonPhrase}", 
                         result.Result.StatusCode, result.Result.ReasonPhrase);
+                    return Task.CompletedTask;
                 }
             )
             .ExecuteAsync(async () => await ExecuteHttpRequest(request, cancellationToken));
@@ -51,8 +52,8 @@ public abstract class SndApiClient
 
     private async Task<HttpResponseMessage> ExecuteHttpRequest(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var responce = await httpClient.SendAsync(CloneRequest(request), cancellationToken);
-        if (responce.StatusCode == HttpStatusCode.Unauthorized)
+        var response = await httpClient.SendAsync(CloneRequest(request), cancellationToken);
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             var newRequest = CloneRequest(request);
             this.logger.LogInformation("Refreshing access token");
@@ -60,8 +61,7 @@ public abstract class SndApiClient
             newRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             response = await httpClient.SendAsync(newRequest, cancellationToken);
         }
-
-        return responce;
+        return response;
     }
 
     private static HttpRequestMessage CloneRequest(HttpRequestMessage request)

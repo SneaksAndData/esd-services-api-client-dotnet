@@ -1,13 +1,13 @@
-﻿using ESD.ApiClient.Boxer;
-using ESD.ApiClient.Boxer.Base;
-using ESD.ApiClient.Config;
-using ESD.ApiClient.Crystal;
-using ESD.ApiClient.Crystal.Base;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SnD.ApiClient.Boxer;
+using SnD.ApiClient.Boxer.Base;
+using SnD.ApiClient.Config;
+using SnD.ApiClient.Crystal;
+using SnD.ApiClient.Crystal.Base;
 
-namespace ESD.ApiClient.Extensions;
+namespace SnD.ApiClient.Extensions;
 
 public static class ServiceCollectionExtensions
 {
@@ -20,10 +20,10 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddBoxerAuthorization(this IServiceCollection services,
         Func<CancellationToken, Task<string>> externalTokenFactory)
     {
-        services.AddSingleton<IBoxerConnector, BoxerConnector>(sp => new BoxerConnector(
+        services.AddSingleton<IJwtTokenExchangeProvider, BoxerTokenProvider>(sp => new BoxerTokenProvider(
             sp.GetRequiredService<IOptions<BoxerConnectorOptions>>(),
             sp.GetRequiredService<HttpClient>(),
-            sp.GetRequiredService<ILogger<BoxerConnector>>(),
+            sp.GetRequiredService<ILogger<BoxerTokenProvider>>(),
             externalTokenFactory));
         return services;
     }

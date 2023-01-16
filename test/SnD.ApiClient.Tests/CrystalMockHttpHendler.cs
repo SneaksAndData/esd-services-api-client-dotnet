@@ -4,21 +4,27 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ESD.ApiClient.Tests;
+namespace SnD.ApiClient.Tests;
 
-    public class BoxerMockHttpHandler : DelegatingHandler
+    public class CrystalMockHttpHandler : DelegatingHandler
     {
         private int callCount;
 
         private readonly List<HttpResponseMessage> responses = new()
         {
+            new HttpResponseMessage(HttpStatusCode.Unauthorized),
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("boxerToken")
+                Content = new StringContent("{ \"RequestId\": \"1\" }")
             },
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("boxerToken")
+                Content = new StringContent("{ \"RequestId\": \"2\" }")
+            },
+            new HttpResponseMessage(HttpStatusCode.Unauthorized),
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{ \"RequestId\": \"3\" }")
             },
         };
 

@@ -1,18 +1,18 @@
 ﻿using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using ESD.ApiClient.Boxer;
-using ESD.ApiClient.Config;
-using ESD.ApiClient.Crystal;
-using ESD.ApiClient.Crystal.Base;
 using ESD.ApiClient.Crystal.Models;
 using ESD.ApiClient.Crystal.Models.Base;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using SnD.ApiClient.Boxer;
+using SnD.ApiClient.Config;
+using SnD.ApiClient.Crystal;
+using SnD.ApiClient.Crystal.Base;
 using Xunit;
 
-namespace ESD.ApiClient.Tests.Crystal;
+namespace SnD.ApiClient.Tests.Crystal;
 
 public class CrystalConnectorTests: IClassFixture<MockServiceFixture>, IClassFixture<LoggerFixture>
 {
@@ -29,14 +29,14 @@ public class CrystalConnectorTests: IClassFixture<MockServiceFixture>, IClassFix
             loggerFixture.Factory.CreateLogger<CrystalConnector>());
     }
 
-    private static BoxerConnector CreateBoxerConnector(MockServiceFixture mockServiceFixture)
+    private static BoxerTokenProvider CreateBoxerConnector(MockServiceFixture mockServiceFixture)
     {
         var boxerOptions = new BoxerConnectorOptions
             { IdentityProvider = "example.com", BaseUri = "https://boxer.example.com" };
-        var boxerConnector = new BoxerConnector(
+        var boxerConnector = new BoxerTokenProvider(
             Options.Create(boxerOptions),
             mockServiceFixture.BoxerMockHttpClient,
-            Mock.Of<ILogger<BoxerConnector>>(),
+            Mock.Of<ILogger<BoxerTokenProvider>>(),
             _ => Task.FromResult(string.Empty));
         return boxerConnector;
     }

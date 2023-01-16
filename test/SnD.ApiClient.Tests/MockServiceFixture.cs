@@ -1,6 +1,6 @@
 ﻿using System.Net.Http;
 
-namespace ESD.ApiClient.Tests
+namespace SnD.ApiClient.Tests
 {
     public class MockServiceFixture
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace ESD.ApiClient.Tests
+namespace SnD.ApiClient.Tests
 {
     public class LoggerFixture
     {

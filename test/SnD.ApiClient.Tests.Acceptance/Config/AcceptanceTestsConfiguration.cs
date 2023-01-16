@@ -1,6 +1,6 @@
 ﻿using ESD.ApiClient.Crystal.Models.Base;
 
-namespace ESD.ApiClient.Tests.Acceptance.Config;
+namespace SnD.ApiClient.Tests.Acceptance.Config;
 
 public class AcceptanceTestsConfiguration
 {

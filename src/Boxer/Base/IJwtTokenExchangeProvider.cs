@@ -1,4 +1,4 @@
-namespace ESD.ApiClient.Boxer.Base;
+namespace SnD.ApiClient.Boxer.Base;
 
 public interface IJwtTokenExchangeProvider
 {

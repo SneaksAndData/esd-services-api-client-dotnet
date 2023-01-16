@@ -1,4 +1,4 @@
-﻿namespace ESD.ApiClient.Config;
+﻿namespace SnD.ApiClient.Config;
 
 public class BoxerConnectorOptions
 {
