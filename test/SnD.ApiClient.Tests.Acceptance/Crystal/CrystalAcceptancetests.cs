@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Identity;
-using ESD.ApiClient.Crystal.Models.Base;
+using SnD.ApiClient.Crystal.Models.Base;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

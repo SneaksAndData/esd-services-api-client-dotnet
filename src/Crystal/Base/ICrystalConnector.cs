@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
-using ESD.ApiClient.Crystal.Models;
-using ESD.ApiClient.Crystal.Models.Base;
+using SnD.ApiClient.Crystal.Models;
+using SnD.ApiClient.Crystal.Models.Base;
 
 namespace SnD.ApiClient.Crystal.Base;
 

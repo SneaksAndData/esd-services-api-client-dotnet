@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ESD.ApiClient.Crystal.Models.Base
+namespace SnD.ApiClient.Crystal.Models.Base
 {
     public enum AlgorithmConfigurationValueType
     {

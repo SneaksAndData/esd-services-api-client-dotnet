@@ -30,7 +30,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\SnD.ApiClient.csproj" />
-      <ProjectReference Include="..\src\ESD.ApiClient.csproj" />
     </ItemGroup>
 
     <ItemGroup>

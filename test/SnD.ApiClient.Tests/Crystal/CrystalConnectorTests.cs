@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using ESD.ApiClient.Crystal.Models;
-using ESD.ApiClient.Crystal.Models.Base;
+using SnD.ApiClient.Crystal.Models;
+using SnD.ApiClient.Crystal.Models.Base;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;

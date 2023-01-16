@@ -1,4 +1,4 @@
-﻿namespace ESD.ApiClient.Crystal.Models.Base;
+﻿namespace SnD.ApiClient.Crystal.Models.Base;
 
 /// <summary>
 /// Request lifecycle stages. Used by metadata store and maintenance service.

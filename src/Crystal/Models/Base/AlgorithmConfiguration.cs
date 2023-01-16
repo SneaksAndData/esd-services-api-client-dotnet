@@ -1,4 +1,4 @@
-﻿namespace ESD.ApiClient.Crystal.Models.Base
+﻿namespace SnD.ApiClient.Crystal.Models.Base
 {
     /// <summary>
     /// Static algorithm configuration.

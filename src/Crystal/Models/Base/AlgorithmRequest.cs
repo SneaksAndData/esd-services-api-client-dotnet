@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.ComponentModel.DataAnnotations;
 
-namespace ESD.ApiClient.Crystal.Models.Base;
+namespace SnD.ApiClient.Crystal.Models.Base;
 
 /// <summary>
 /// Data to be submitted by a client, when doing an algorithm invocation.

@@ -1,4 +1,4 @@
-﻿using ESD.ApiClient.Crystal.Models.Base;
+﻿using SnD.ApiClient.Crystal.Models.Base;
 
 namespace SnD.ApiClient.Tests.Acceptance.Config;
 

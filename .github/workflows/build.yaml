@@ -23,7 +23,7 @@ jobs:
       - name: Build
         run: dotnet build --no-restore
       - name: Test
-        working-directory: ./test/ESD.ApiClient.Tests
+        working-directory: ./test/SnD.ApiClient.Tests
         run: |
           dotnet add package coverlet.msbuild &&
           dotnet test ESD.ApiClient.Tests.csproj --configuration Debug --runtime linux-x64 /p:CollectCoverage=true /p:CoverletOutput=Coverage/ /p:CoverletOutputFormat=lcov --logger GitHubActions
