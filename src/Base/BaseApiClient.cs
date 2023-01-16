@@ -10,7 +10,7 @@ namespace SnD.ApiClient.Base;
 /// <summary>
 /// Base class for all API clients
 /// </summary>
-public abstract class BaseApiClient
+public abstract class SndApiClient
 {
     protected static JsonSerializerOptions JsonSerializerOptions => new() { PropertyNameCaseInsensitive = true };
     
