@@ -18,12 +18,6 @@ public abstract class BaseApiClient
     private readonly IBoxerConnector _boxerConnector;
     private readonly ILogger logger;
 
-    /// <summary>
-    /// Creates new instance
-    /// </summary>
-    /// <param name="httpClient">Http client</param>
-    /// <param name="boxerConnector">Token provider</param>
-    /// <param name="logger"></param>
     protected BaseApiClient(HttpClient httpClient, IBoxerConnector boxerConnector, ILogger logger)
     {
         this.httpClient = httpClient;

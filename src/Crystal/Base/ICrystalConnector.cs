@@ -17,5 +17,12 @@ public interface ICrystalConnector
     Task<CreateRunResponse?> CreateRunAsync(string algorithm, JsonElement payload,
         AlgorithmConfiguration customConfiguration, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Query and return result of the run
+    /// </summary>
+    /// <param name="algorithm">Algorithm name</param>
+    /// <param name="requestId">Request ID received form <see cref="CreateRunAsync"/></param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>RunResult instance</returns>
     public Task<RunResult?> QueryResultAsync(string algorithm, string requestId, CancellationToken cancellationToken = default);
 }

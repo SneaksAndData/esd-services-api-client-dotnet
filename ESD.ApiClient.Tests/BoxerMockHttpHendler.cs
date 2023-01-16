@@ -22,7 +22,8 @@ namespace ESD.ApiClient.Tests;
             },
         };
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken) {
             var response = responses[callCount];
             callCount++;
             return Task.FromResult(response);

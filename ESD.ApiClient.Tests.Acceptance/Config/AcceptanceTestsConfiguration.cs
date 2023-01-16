@@ -1,17 +1,21 @@
-﻿using System.Text.Json;
-using ESD.ApiClient.Crystal.Models.Base;
+﻿using ESD.ApiClient.Crystal.Models.Base;
 
 namespace ESD.ApiClient.Tests.Acceptance.Config;
 
 public class AcceptanceTestsConfiguration
 {
-    public string AuthenticatinProvider { get; set; }
-    public string BoxerBaseUrl { get; set; }
-    
-    public string CrystalBaseUrl { get; set; }
-    
+    /// <summary>
+    /// Algorithm configuration
+    /// </summary>
     public AlgorithmConfiguration AlgorithmConfiguration { get; set; }
     
+    /// <summary>
+    /// Payload serialized to string
+    /// </summary>
     public string AlgorithmPayload { get; set; }
+    
+    /// <summary>
+    /// Name of the algorithm
+    /// </summary>
     public string AlgorithmName { get; set; }
 }

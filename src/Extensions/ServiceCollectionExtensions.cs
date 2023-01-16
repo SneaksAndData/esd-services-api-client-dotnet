@@ -11,6 +11,12 @@ namespace ESD.ApiClient.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Add Boxer authorization service to DI
+    /// </summary>
+    /// <param name="services">Services collection</param>
+    /// <param name="externalTokenFactory">Function that provides external identity provider token</param>
+    /// <returns>Services collection</returns>
     public static IServiceCollection AddBoxerAuthorization(this IServiceCollection services,
         Func<CancellationToken, Task<string>> externalTokenFactory)
     {
@@ -22,6 +28,9 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Add Crystal connector to DI
+    /// </summary>
     public static IServiceCollection AddCrystalConnector(this IServiceCollection services)
     {
         services.AddSingleton<ICrystalConnector, CrystalConnector>();

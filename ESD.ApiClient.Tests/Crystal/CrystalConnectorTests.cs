@@ -20,23 +20,25 @@ public class CrystalConnectorTests: IClassFixture<MockServiceFixture>, IClassFix
 
     public CrystalConnectorTests(MockServiceFixture mockServiceFixture, LoggerFixture loggerFixture)
     {
+        var crystalOptions = new CrystalConnectorOptions
+            { BaseUri = "https://crystal.example.com", ApiVersion = ApiVersions.v1_2 };
+        
+        this.crystalConnector = new CrystalConnector(Options.Create(crystalOptions),
+            mockServiceFixture.CrystalMockHttpClient,
+            CreateBoxerConnector(mockServiceFixture),
+            loggerFixture.Factory.CreateLogger<CrystalConnector>());
+    }
+
+    private static BoxerConnector CreateBoxerConnector(MockServiceFixture mockServiceFixture)
+    {
+        var boxerOptions = new BoxerConnectorOptions
+            { IdentityProvider = "example.com", BaseUri = "https://boxer.example.com" };
         var boxerConnector = new BoxerConnector(
-            Options.Create(new BoxerConnectorOptions
-            {
-                AuthorizationProvider = "example.com",
-                BaseUri = "https://boxer.example.com"
-            }),
+            Options.Create(boxerOptions),
             mockServiceFixture.BoxerMockHttpClient,
             Mock.Of<ILogger<BoxerConnector>>(),
             _ => Task.FromResult(string.Empty));
-        this.crystalConnector = new CrystalConnector(Options.Create(new CrystalConnectorOptions
-            {
-                BaseUri = "https://crystal.example.com",
-                ApiVersion = ApiVersions.v1_2
-                
-            }),
-            mockServiceFixture.CrystalMockHttpClient, boxerConnector,
-            loggerFixture.Factory.CreateLogger(nameof(CrystalConnectorTests)));
+        return boxerConnector;
     }
 
     [Fact]

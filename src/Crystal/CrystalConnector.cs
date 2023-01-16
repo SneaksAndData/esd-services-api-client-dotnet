@@ -16,12 +16,6 @@ public class CrystalConnector : BaseApiClient, ICrystalConnector
     private readonly Uri baseUri;
     private readonly string apiVersion;
 
-    /// <summary>
-    /// Creates new instance
-    /// </summary>
-    /// <param name="httpClient">Http client</param>
-    /// <param name="boxerConnector">Boxer token provider instance</param>
-    /// <param name="logger">Logger</param>
     public CrystalConnector(IOptions<CrystalConnectorOptions> crystalConnectionOptions, HttpClient httpClient,
         IBoxerConnector boxerConnector, ILogger<CrystalConnector> logger) : base(httpClient, boxerConnector, logger)
     {

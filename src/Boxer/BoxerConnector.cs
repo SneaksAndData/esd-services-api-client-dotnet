@@ -19,17 +19,18 @@ public class BoxerConnector : IBoxerConnector
    /// <summary>
    /// Creates new instance
    /// </summary>
-   /// <param name="baseUri">Crystal instance URI</param>
-   /// <param name="authProvider">External Authorization provider name</param>
+   /// <param name="boxerConnectorOptions">Options for boxer connector</param>
    /// <param name="httpClient">Http client</param>
+   /// <param name="logger">Logger for boxer connector</param>
    /// <param name="getExternalTokenAsync">Function that returns external authentication token</param>
-   public BoxerConnector(IOptions<BoxerConnectorOptions> boxerConnectorOptions, HttpClient httpClient, ILogger logger,
-      Func<CancellationToken, Task<string>> getExternalTokenAsync)
+   public BoxerConnector(IOptions<BoxerConnectorOptions> boxerConnectorOptions, HttpClient httpClient,
+      ILogger<BoxerConnector> logger, Func<CancellationToken, Task<string>> getExternalTokenAsync)
    {
-      var authorizationProvider = boxerConnectorOptions.Value.AuthorizationProvider ??
-                                  throw new ArgumentNullException(nameof(BoxerConnectorOptions.AuthorizationProvider));
+      var authorizationProvider = boxerConnectorOptions.Value.IdentityProvider
+                                  ?? throw new ArgumentNullException(nameof(BoxerConnectorOptions.IdentityProvider));
       this.authProvider = new Uri($"token/{authorizationProvider}", UriKind.Relative);
-      this.baseUri = new Uri(boxerConnectorOptions.Value.BaseUri ?? throw new ArgumentException(nameof(BoxerConnectorOptions.BaseUri)));
+      this.baseUri = new Uri(boxerConnectorOptions.Value.BaseUri
+                             ?? throw new ArgumentException(nameof(BoxerConnectorOptions.BaseUri)));
       this.httpClient = httpClient;
       this.logger = logger;
       this.getExternalTokenAsync = getExternalTokenAsync;
