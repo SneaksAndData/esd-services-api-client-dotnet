@@ -11,7 +11,7 @@ public class BoxerTokenProvider : IBoxerConnector
 {
    private readonly Uri authProvider;
    private readonly Uri baseUri;
-   private string? token;
+   private string token;
    private readonly HttpClient httpClient;
    private readonly ILogger logger;
    private readonly Func<CancellationToken, Task<string>> getExternalTokenAsync;
