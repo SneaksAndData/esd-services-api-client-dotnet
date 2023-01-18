@@ -1,6 +1,6 @@
 ﻿namespace SnD.ApiClient.Config;
 
-public class BoxerConnectorOptions
+public class BoxerTokenProviderOptions
 {
     /// <summary>
     /// Base URI of the boxer instance

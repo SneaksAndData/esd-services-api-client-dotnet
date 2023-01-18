@@ -29,7 +29,7 @@ public class AcceptanceTests
         configurationRoot.GetSection(nameof(AcceptanceTestsConfiguration)).Bind(this.configuration);
 
         this.services = new ServiceCollection()
-            .Configure<BoxerConnectorOptions>(configurationRoot.GetSection(nameof(BoxerConnectorOptions)))
+            .Configure<BoxerTokenProviderOptions>(configurationRoot.GetSection(nameof(BoxerTokenProviderOptions)))
             .AddSingleton<HttpClient>()
             .AddLogging(conf => conf.AddConsole())
             .AddBoxerAuthorization(async cancellationToken =>
@@ -39,8 +39,8 @@ public class AcceptanceTests
                 var tokenResponse = await credential.GetTokenAsync(context, cancellationToken);
                 return tokenResponse.Token;
             })
-            .Configure<CrystalConnectorOptions>(configurationRoot.GetSection(nameof(CrystalConnectorOptions)))
-            .AddCrystalConnector()
+            .Configure<CrystalClientOptions>(configurationRoot.GetSection(nameof(CrystalClientOptions)))
+            .AddCrystalClient()
             .BuildServiceProvider();
     }
     

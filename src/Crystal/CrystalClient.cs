@@ -11,22 +11,22 @@ using SnD.ApiClient.Crystal.Base;
 
 namespace SnD.ApiClient.Crystal;
 
-public class CrystalConnector : SndApiClient, ICrystalConnector
+public class CrystalClient : SndApiClient, ICrystalConnector
 {
     private readonly Uri baseUri;
     private readonly string apiVersion;
 
-    public CrystalConnector(IOptions<CrystalConnectorOptions> crystalConnectionOptions, HttpClient httpClient,
-        IJwtTokenExchangeProvider boxerConnector, ILogger<CrystalConnector> logger) : base(httpClient, boxerConnector, logger)
+    public CrystalClient(IOptions<CrystalClientOptions> crystalClientOptions, HttpClient httpClient,
+        IJwtTokenExchangeProvider boxerConnector, ILogger<CrystalClient> logger) : base(httpClient, boxerConnector, logger)
     {
-        this.apiVersion = crystalConnectionOptions.Value.ApiVersion ??
-                          throw new ArgumentNullException(nameof(CrystalConnectorOptions.ApiVersion));
-        this.baseUri = new Uri(crystalConnectionOptions.Value.BaseUri
-                       ?? throw new ArgumentNullException(nameof(CrystalConnectorOptions.BaseUri)));
+        this.apiVersion = crystalClientOptions.Value.ApiVersion ??
+                          throw new ArgumentNullException(nameof(CrystalClientOptions.ApiVersion));
+        this.baseUri = new Uri(crystalClientOptions.Value.BaseUri
+                       ?? throw new ArgumentNullException(nameof(CrystalClientOptions.BaseUri)));
     }
 
     /// <inheritdoc/>
-    public async Task<CreateRunResponse?> CreateRunAsync(string algorithm, JsonElement payload,
+    public async Task<CreateRunResponse> CreateRunAsync(string algorithm, JsonElement payload,
         AlgorithmConfiguration customConfiguration,
         CancellationToken cancellationToken = default)
     {
@@ -46,7 +46,7 @@ public class CrystalConnector : SndApiClient, ICrystalConnector
         return JsonSerializer.Deserialize<CreateRunResponse>(responseString, JsonSerializerOptions);
     }
 
-    public async Task<RunResult?> GetResultAsync(string algorithm, string requestId, CancellationToken cancellationToken = default)
+    public async Task<RunResult> GetResultAsync(string algorithm, string requestId, CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);

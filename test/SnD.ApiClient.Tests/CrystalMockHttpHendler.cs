@@ -15,16 +15,16 @@ namespace SnD.ApiClient.Tests;
             new HttpResponseMessage(HttpStatusCode.Unauthorized),
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("{ \"RequestId\": \"1\" }")
+                Content = new StringContent("{ \"RequestId\": \"00000000-0000-0000-0000-000000000000\" }")
             },
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("{ \"RequestId\": \"2\" }")
+                Content = new StringContent("{ \"RequestId\": \"00000000-0000-0000-0000-000000000002\" }")
             },
             new HttpResponseMessage(HttpStatusCode.Unauthorized),
             new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("{ \"RequestId\": \"3\" }")
+                Content = new StringContent("{ \"RequestId\": \"00000000-0000-0000-0000-000000000003\" }")
             },
         };
 

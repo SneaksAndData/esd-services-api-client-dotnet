@@ -8,7 +8,7 @@ on:
 
 jobs:
   validate_commit:
-    name: Validate Code and Publish Coverage
+    name: Validate commit
     runs-on: ubuntu-latest
     if: ${{ github.ref != 'refs/heads/main' }}
 

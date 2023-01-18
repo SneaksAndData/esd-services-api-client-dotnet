@@ -21,7 +21,7 @@ public static class ServiceCollectionExtensions
         Func<CancellationToken, Task<string>> externalTokenFactory)
     {
         services.AddSingleton<IJwtTokenExchangeProvider, BoxerTokenProvider>(sp => new BoxerTokenProvider(
-            sp.GetRequiredService<IOptions<BoxerConnectorOptions>>(),
+            sp.GetRequiredService<IOptions<BoxerTokenProviderOptions>>(),
             sp.GetRequiredService<HttpClient>(),
             sp.GetRequiredService<ILogger<BoxerTokenProvider>>(),
             externalTokenFactory));
@@ -31,8 +31,8 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Add Crystal connector to DI
     /// </summary>
-    public static IServiceCollection AddCrystalConnector(this IServiceCollection services)
+    public static IServiceCollection AddCrystalClient(this IServiceCollection services)
     {
-        return services.AddSingleton<ICrystalConnector, CrystalConnector>();
+        return services.AddSingleton<ICrystalConnector, CrystalClient>();
     }
 }

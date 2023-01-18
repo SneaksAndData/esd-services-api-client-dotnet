@@ -19,18 +19,18 @@ public class BoxerTokenProvider : IJwtTokenExchangeProvider
    /// <summary>
    /// Creates new instance
    /// </summary>
-   /// <param name="boxerConnectorOptions">Options for boxer connector</param>
+   /// <param name="boxerTokenProviderOptions">Options for boxer connector</param>
    /// <param name="httpClient">Http client</param>
    /// <param name="logger">Logger for boxer connector</param>
    /// <param name="getExternalTokenAsync">Function that returns external authentication token</param>
-   public BoxerTokenProvider(IOptions<BoxerConnectorOptions> boxerConnectorOptions, HttpClient httpClient,
+   public BoxerTokenProvider(IOptions<BoxerTokenProviderOptions> boxerTokenProviderOptions, HttpClient httpClient,
       ILogger<BoxerTokenProvider> logger, Func<CancellationToken, Task<string>> getExternalTokenAsync)
    {
-      var authorizationProvider = boxerConnectorOptions.Value.IdentityProvider
-                                  ?? throw new ArgumentNullException(nameof(BoxerConnectorOptions.IdentityProvider));
+      var authorizationProvider = boxerTokenProviderOptions.Value.IdentityProvider
+                                  ?? throw new ArgumentNullException(nameof(BoxerTokenProviderOptions.IdentityProvider));
       this.authProvider = new Uri($"token/{authorizationProvider}", UriKind.Relative);
-      this.baseUri = new Uri(boxerConnectorOptions.Value.BaseUri
-                             ?? throw new ArgumentException(nameof(BoxerConnectorOptions.BaseUri)));
+      this.baseUri = new Uri(boxerTokenProviderOptions.Value.BaseUri
+                             ?? throw new ArgumentException(nameof(BoxerTokenProviderOptions.BaseUri)));
       this.httpClient = httpClient;
       this.logger = logger;
       this.getExternalTokenAsync = getExternalTokenAsync;

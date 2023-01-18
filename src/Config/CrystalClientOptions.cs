@@ -1,6 +1,6 @@
 ﻿namespace SnD.ApiClient.Config;
 
-public class CrystalConnectorOptions
+public class CrystalClientOptions
 {
     /// <summary>
     /// Base URI of the Crystal instance
