@@ -1,0 +1,35 @@
+name: Run tests with coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate_commit:
+    name: Validate commit
+    runs-on: ubuntu-latest
+    if: ${{ github.ref != 'refs/heads/main' }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1.9.0
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Test
+        working-directory: ./test/SnD.ApiClient.Tests
+        run: |
+          dotnet add package coverlet.msbuild &&
+          dotnet test SnD.ApiClient.Tests.csproj --configuration Debug --runtime linux-x64 /p:CollectCoverage=true /p:CoverletOutput=Coverage/ /p:CoverletOutputFormat=lcov --logger GitHubActions
+      - name: Publish Code Coverage
+        if: ${{ github.event_name == 'pull_request' && always() }}
+        uses: romeovs/lcov-reporter-action@v0.2.16
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: ./test/Coverage/coverage.info

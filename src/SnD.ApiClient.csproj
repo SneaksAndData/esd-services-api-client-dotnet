@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>latest</LangVersion>
+        <RootNamespace>SnD.ApiClient</RootNamespace>
+        <OutputType>Library</OutputType>
+        <PackageId>SnD.ApiClient</PackageId>
+        <Authors>Sneaks&amp;Data</Authors>
+        <Version>0.0.0</Version>
+        <Company>Sneaks&amp;Data</Company>
+        <RepositoryUrl>https://github.com/SneaksAndData/esd-services-api-client-dotnet</RepositoryUrl>
+        <PackageDescription>Client libraries for Sneaks&amp;Data services</PackageDescription>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.3" />
+      <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.0" />
+      <PackageReference Include="Polly" Version="7.2.3" />
+      <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+      <PackageReference Include="System.Text.Json" Version="7.0.1" />
+    </ItemGroup>
+
+</Project>
