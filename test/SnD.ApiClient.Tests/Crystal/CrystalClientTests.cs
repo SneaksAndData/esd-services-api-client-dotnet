@@ -16,14 +16,14 @@ namespace SnD.ApiClient.Tests.Crystal;
 
 public class CrystalClientTests: IClassFixture<MockServiceFixture>, IClassFixture<LoggerFixture>
 {
-    private readonly ICrystalConnector crystalConnector;
+    private readonly ICrystalClient crystalClient;
 
     public CrystalClientTests(MockServiceFixture mockServiceFixture, LoggerFixture loggerFixture)
     {
         var crystalOptions = new CrystalClientOptions
             { BaseUri = "https://crystal.example.com", ApiVersion = ApiVersions.v1_2 };
         
-        this.crystalConnector = new CrystalClient(Options.Create(crystalOptions),
+        this.crystalClient = new CrystalClient(Options.Create(crystalOptions),
             mockServiceFixture.CrystalMockHttpClient,
             CreateBoxerClient(mockServiceFixture),
             loggerFixture.Factory.CreateLogger<CrystalClient>());
@@ -45,7 +45,7 @@ public class CrystalClientTests: IClassFixture<MockServiceFixture>, IClassFixtur
     public async Task TestShouldRenewTokenAsync()
     {
         var payload = JsonDocument.Parse("null").RootElement;
-        var result = await crystalConnector.CreateRunAsync(
+        var result = await crystalClient.CreateRunAsync(
             "algorithm",
             payload,
             new AlgorithmConfiguration(),

@@ -33,6 +33,6 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddCrystalClient(this IServiceCollection services)
     {
-        return services.AddSingleton<ICrystalConnector, CrystalClient>();
+        return services.AddSingleton<ICrystalClient, CrystalClient>();
     }
 }

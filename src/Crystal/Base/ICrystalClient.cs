@@ -4,7 +4,7 @@ using SnD.ApiClient.Crystal.Models.Base;
 
 namespace SnD.ApiClient.Crystal.Base;
 
-public interface ICrystalConnector
+public interface ICrystalClient
 {
     /// <summary>
     /// Creates new run for of specified algorithm in Crystal

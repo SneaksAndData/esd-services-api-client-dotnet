@@ -27,6 +27,6 @@ namespace SnD.ApiClient.Crystal.Models.Base
         /// Type of the entrie's value. Null is added for backwards-compatibility, behaviour is the same as PLAIN.
         /// </summary>
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public AlgorithmConfigurationValueType? ValueType { get; set; }
+        public AlgorithmConfigurationValueType ValueType { get; set; }
     }
 }

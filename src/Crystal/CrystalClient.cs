@@ -11,7 +11,7 @@ using SnD.ApiClient.Crystal.Base;
 
 namespace SnD.ApiClient.Crystal;
 
-public class CrystalClient : SndApiClient, ICrystalConnector
+public class CrystalClient : SndApiClient, ICrystalClient
 {
     private readonly Uri baseUri;
     private readonly string apiVersion;

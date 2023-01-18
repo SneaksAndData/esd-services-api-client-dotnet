@@ -17,7 +17,7 @@ public class AlgorithmRequest
     /// <summary>
     /// Optional custom configuration to be applied when running this algorithm.
     /// </summary>
-    public AlgorithmConfiguration? CustomConfiguration { get; set; }
+    public AlgorithmConfiguration CustomConfiguration { get; set; }
         
     /// <summary>
     /// Tag for tracking request status

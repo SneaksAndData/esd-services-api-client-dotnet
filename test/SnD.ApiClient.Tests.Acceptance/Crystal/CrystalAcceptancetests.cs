@@ -47,7 +47,7 @@ public class AcceptanceTests
     [Fact]
     public async Task TestCanRunAlgorithm()
     {
-        var crystalConnector = this.services.GetRequiredService<ICrystalConnector>();
+        var crystalConnector = this.services.GetRequiredService<ICrystalClient>();
         var response = await crystalConnector.CreateRunAsync(
             configuration.AlgorithmName,
             JsonDocument.Parse(configuration.AlgorithmPayload).RootElement,
