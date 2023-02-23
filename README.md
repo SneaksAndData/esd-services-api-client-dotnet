@@ -1,6 +1,6 @@
 # ESD.ApiClient
 
-This repo contains clients for Sneaks&Data services:
+Clients for Sneaks&Data services:
 
 - Crystal, a high-performance runner for containerized machine learning algorithms based on Akka framework and Kubernetes Jobs API. 
 - Boxer, an authorization API based on Json Web Tokens.
