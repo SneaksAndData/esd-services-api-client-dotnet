@@ -58,7 +58,7 @@ public class AcceptanceTests
         Assert.NotNull(response);
         Assert.NotNull(response!.RequestId);
         
-        RunResult? runResult;
+        RunResult runResult;
         do
         {
             await Task.Delay(5000);
