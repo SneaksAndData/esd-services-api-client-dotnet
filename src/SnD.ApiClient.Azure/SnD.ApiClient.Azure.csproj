@@ -22,4 +22,8 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\SnD.ApiClient\SnD.ApiClient.csproj" />
+    </ItemGroup>
+
 </Project>
