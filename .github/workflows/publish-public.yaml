@@ -48,7 +48,7 @@ jobs:
           echo "$CERT" | base64 --decode > cert.p12
           
           dotnet sign "bin/Release/SnD.ApiClient.$version.nupkg"  \
-            --certificate-path --certificate-path cert.p12 \
+            --certificate-path cert.p12 \
             --timestamper http://timestamp.digicert.com
           
           dotnet nuget push "bin/Release/SnD.ApiClient.$version.nupkg" --api-key "$API_KEY" \
@@ -67,7 +67,7 @@ jobs:
           echo "$CERT" | base64 --decode > cert.p12
           
           dotnet sign "bin/Release/SnD.ApiClient.Azure.$version.nupkg"  \
-            --certificate-path --certificate-path cert.p12 \
+            --certificate-path cert.p12 \
             --timestamper http://timestamp.digicert.com
           
           dotnet nuget push "bin/Release/SnD.ApiClient.Azure.$version.nupkg" --api-key "$API_KEY" \
