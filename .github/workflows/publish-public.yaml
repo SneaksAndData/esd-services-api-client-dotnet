@@ -8,6 +8,10 @@ jobs:
   release_to_nuget:
     name: Release distribution to Github package feed
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - uses: actions/checkout@v2
