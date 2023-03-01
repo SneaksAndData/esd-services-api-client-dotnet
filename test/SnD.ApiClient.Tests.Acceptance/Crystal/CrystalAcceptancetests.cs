@@ -2,8 +2,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Core;
-using Azure.Identity;
 using SnD.ApiClient.Crystal.Models.Base;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using SnD.ApiClient.Config;
 using SnD.ApiClient.Crystal.Base;
 using SnD.ApiClient.Extensions;
+using SnD.ApiClient.Azure;
 using SnD.ApiClient.Tests.Acceptance.Config;
 using Xunit;
 
@@ -32,21 +31,17 @@ public class AcceptanceTests
             .Configure<BoxerTokenProviderOptions>(configurationRoot.GetSection(nameof(BoxerTokenProviderOptions)))
             .AddSingleton<HttpClient>()
             .AddLogging(conf => conf.AddConsole())
-            .AddBoxerAuthorization(async cancellationToken =>
-            {
-                var credential = new DefaultAzureCredential();
-                var context = new TokenRequestContext(scopes: new[] { "https://management.core.windows.net/.default" });
-                var tokenResponse = await credential.GetTokenAsync(context, cancellationToken);
-                return tokenResponse.Token;
-            })
+            .AuthorizeWithBoxerOnAzure()
             .Configure<CrystalClientOptions>(configurationRoot.GetSection(nameof(CrystalClientOptions)))
             .AddCrystalClient()
             .BuildServiceProvider();
     }
     
-    [Fact]
+    [SkippableFact]
     public async Task TestCanRunAlgorithm()
     {
+        Skip.If(string.IsNullOrEmpty(configuration.AlgorithmName) || configuration.AlgorithmPayload == null, "Algorithm payload and/or name is empty.");
+        
         var crystalConnector = this.services.GetRequiredService<ICrystalClient>();
         var response = await crystalConnector.CreateRunAsync(
             configuration.AlgorithmName,

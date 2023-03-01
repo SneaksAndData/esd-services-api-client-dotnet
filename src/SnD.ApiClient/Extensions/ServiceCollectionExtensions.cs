@@ -27,7 +27,25 @@ public static class ServiceCollectionExtensions
             externalTokenFactory));
         return services;
     }
+    
+    /// <summary>
+    /// Add Boxer authorization service to DI
+    /// </summary>
+    /// <param name="services">Services collection</param>
+    /// <returns>Services collection</returns>
+    public static IServiceCollection AuthorizeWithBoxerOnKubernetes(this IServiceCollection services)
+    {
+        return services.AddBoxerAuthorization(cancellationToken =>
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
 
+            return Task.FromResult(File.ReadAllText("/var/run/secrets/kubernetes.io/serviceaccount/token"));
+        });
+    }
+    
     /// <summary>
     /// Add Crystal connector to DI
     /// </summary>

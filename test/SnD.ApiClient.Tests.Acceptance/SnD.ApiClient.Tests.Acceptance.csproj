@@ -6,6 +6,8 @@
         <IsPackable>false</IsPackable>
 
         <RootNamespace>SnD.ApiClient.Tests.Acceptance</RootNamespace>
+
+        <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -25,15 +27,17 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\SnD.ApiClient.csproj" />
+      <ProjectReference Include="..\..\src\SnD.ApiClient\SnD.ApiClient.csproj" />
+        <ProjectReference Include="..\..\src\SnD.ApiClient.Azure\SnD.ApiClient.Azure.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <None Update="appsettings.test.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 

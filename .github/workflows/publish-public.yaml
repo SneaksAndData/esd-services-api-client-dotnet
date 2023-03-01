@@ -17,7 +17,8 @@ jobs:
         run: |
           set -e
           version=$(git describe --tags --abbrev=7 | tr -d "v")
-          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.ApiClient.csproj
+          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.ApiClient/SnD.ApiClient.csproj
+          sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.ApiClient.Azure/SnD.ApiClient.Azure.csproj
       - name: Import Secrets
         uses: hashicorp/vault-action@v2.4.1
         with:
@@ -27,13 +28,13 @@ jobs:
           secrets: |
             /secret/data/common/code_signing_certificates certificate.p12 | CERT ;
             /secret/data/common/nuget_publish api_key | API_KEY ;
-      - name: Build NuGet
+      - name: Build NuGet for SnD.ApiClient
+        working-directory: ./src/SnD.ApiClient
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euxo pipefail
           version=$(git describe --tags --abbrev=7 | tr -d "v")
-          cd src/
           dotnet pack --configuration Release SnD.ApiClient.csproj
           
           echo "$CERT" | base64 --decode > cert.p12
@@ -46,3 +47,22 @@ jobs:
             --source  https://api.nuget.org/v3/index.json
           
           rm cert.p12
+      - name: Build NuGet for SnD.ApiClient.Azure
+        working-directory: ./src/SnD.ApiClient.Azure
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          version=$(git describe --tags --abbrev=7 | tr -d "v")
+          dotnet pack --configuration Release SnD.ApiClient.Azure.csproj
+          
+          echo "$CERT" | base64 --decode > cert.p12
+          
+          dotnet sign "bin/Release/SnD.ApiClient.Azure.$version.nupkg"  \
+            --certificate-path --certificate-path cert.p12 \
+            --timestamper http://timestamp.digicert.com
+          
+          dotnet nuget push "bin/Release/SnD.ApiClient.Azure.$version.nupkg" --api-key "$API_KEY" \
+            --source  https://api.nuget.org/v3/index.json
+          
+          rm cert.p12          
