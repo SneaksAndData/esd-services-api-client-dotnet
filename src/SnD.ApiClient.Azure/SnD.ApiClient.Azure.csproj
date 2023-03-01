@@ -11,7 +11,15 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SnD.ApiClient\SnD.ApiClient.csproj" />
+        <None Include="README.md" Pack="true" Visible="false" PackagePath="\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="README.md">
+        <Pack>true</Pack>
+        <Visible>false</Visible>
+        <PackagePath>\</PackagePath>
+      </None>
     </ItemGroup>
 
 </Project>
