@@ -15,13 +15,15 @@ public abstract class SndApiClient
     protected static JsonSerializerOptions JsonSerializerOptions => new() { PropertyNameCaseInsensitive = true };
     
     private readonly HttpClient httpClient;
-    private readonly IJwtTokenExchangeProvider _boxerConnector;
+    private readonly IJwtTokenExchangeProvider boxerConnector;
     private readonly ILogger logger;
+    private string boxerToken;
 
     protected SndApiClient(HttpClient httpClient, IJwtTokenExchangeProvider boxerConnector, ILogger logger)
     {
         this.httpClient = httpClient;
-        this._boxerConnector = boxerConnector;
+        this.boxerConnector = boxerConnector;
+        this.boxerToken = null;
         this.logger = logger;
     }
 
@@ -52,13 +54,22 @@ public abstract class SndApiClient
 
     private async Task<HttpResponseMessage> ExecuteHttpRequest(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var response = await httpClient.SendAsync(CloneRequest(request), cancellationToken);
+        if (string.IsNullOrEmpty(this.boxerToken))
+        {
+            this.logger.LogInformation("No access token cached - fetching a new one");
+            this.boxerToken = await this.boxerConnector.GetTokenAsync(refresh: true, cancellationToken);
+        }
+        
+        var requestClone = CloneRequest(request);
+        requestClone.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.boxerToken);
+        var response = await httpClient.SendAsync(requestClone, cancellationToken);
+        
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             var newRequest = CloneRequest(request);
             this.logger.LogInformation("Refreshing access token");
-            var token = await this._boxerConnector.GetTokenAsync(refresh: true, cancellationToken);
-            newRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            this.boxerToken = await this.boxerConnector.GetTokenAsync(refresh: true, cancellationToken);
+            newRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.boxerToken);
             response = await httpClient.SendAsync(newRequest, cancellationToken);
         }
         return response;
