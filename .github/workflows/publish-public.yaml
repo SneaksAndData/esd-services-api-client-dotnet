@@ -28,7 +28,7 @@ jobs:
           sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.ApiClient/SnD.ApiClient.csproj
           sed -i "s/<Version>0.0.0/<Version>$version/" src/SnD.ApiClient.Azure/SnD.ApiClient.Azure.csproj
       - name: Import Secrets
-        uses: hashicorp/vault-action@v2.4.1
+        uses: hashicorp/vault-action@v2.7.1
         with:
           url: https://hashicorp-vault.production.sneaksanddata.com/
           role: github
