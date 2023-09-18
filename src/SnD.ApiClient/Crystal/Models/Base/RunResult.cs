@@ -2,7 +2,7 @@
 
 namespace SnD.ApiClient.Crystal.Models.Base;
 
-public class RunResult
+public record RunResult
 {
     /// <summary>
     /// Identifier of a request.
@@ -24,4 +24,26 @@ public class RunResult
     /// Error to be communicated to a client.
     /// </summary>
     public string RunErrorMessage { get; set; }
+
+    public static RunResult LostSubmission(string requestId)
+    {
+        return new RunResult
+        {
+            RequestId = requestId,
+            Status = RequestLifeCycleStage.FAILED,
+            ResultUri = null,
+            RunErrorMessage = "Submission has been lost. Please retry in a few seconds."
+        };
+    }
+
+    public static RunResult Pending(string requestId)
+    {
+        return new RunResult
+        {
+            RequestId = requestId,
+            Status = RequestLifeCycleStage.RUNNING,
+            ResultUri = null,
+            RunErrorMessage = null
+        };
+    }
 }

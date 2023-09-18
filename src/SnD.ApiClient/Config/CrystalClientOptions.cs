@@ -12,4 +12,9 @@ public class CrystalClientOptions
     /// Api version
     /// </summary>
     public string ApiVersion { get; set; }
+    
+    /// <summary>
+    /// Maximum retries before giving up on 404 responses.
+    /// </summary>
+    public int MaxRetries { get; set; }
 }

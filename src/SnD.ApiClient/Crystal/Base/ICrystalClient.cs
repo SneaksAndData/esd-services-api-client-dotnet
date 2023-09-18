@@ -25,4 +25,14 @@ public interface ICrystalClient
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>RunResult instance</returns>
     public Task<RunResult> GetResultAsync(string algorithm, string requestId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Awaits a run until it completes with any result.
+    /// </summary>
+    /// <param name="algorithm">Algorithm name</param>
+    /// <param name="requestId">Request ID received form <see cref="CreateRunAsync"/></param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>RunResult instance</returns>
+    public Task<RunResult> AwaitRunAsync(string algorithm, string requestId,
+        CancellationToken cancellationToken = default);
 }
