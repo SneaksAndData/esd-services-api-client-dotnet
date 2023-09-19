@@ -68,3 +68,26 @@ To get a request status:
 ```csharp
     var runResult = await crystalConnector.GetResultAsync("algorithm-name", response.RequestId);
 ```
+
+To await the run and cancel using external timeout:
+```csharp
+   var response = await crystalConnector.CreateRunAsync(
+                "algorithm-name",
+                /* algorithm payload */,
+                /* algorithm configuration */,
+                CancellationToken.None
+       );
+  
+  using var cts = new CancellationTokenSource();
+  cts.CancelAfter(TimeSpan.FromMinutes(5);
+  var result = await crystalConnector.AwaitRunAsync(
+                "algorithm-name",
+                response.RequestId,
+                cts.Token
+  );
+  
+  if (result.Status == RequestLifeCycleStage.FAILED)
+  {
+      // do stuff
+  }
+```

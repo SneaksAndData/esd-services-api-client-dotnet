@@ -27,7 +27,9 @@ public interface ICrystalClient
     public Task<RunResult> GetResultAsync(string algorithm, string requestId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Awaits a run until it completes with any result.
+    /// Awaits a run until it completes with any result or runs out of time set via cancellationToken.
+    /// For some cases this can return a failed result when the algorithm has not been actually executed, for example,
+    /// when a submission was lost.
     /// </summary>
     /// <param name="algorithm">Algorithm name</param>
     /// <param name="requestId">Request ID received form <see cref="CreateRunAsync"/></param>

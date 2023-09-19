@@ -32,7 +32,7 @@ public record RunResult
             RequestId = requestId,
             Status = RequestLifeCycleStage.FAILED,
             ResultUri = null,
-            RunErrorMessage = "Submission has been lost. Please retry in a few seconds."
+            RunErrorMessage = "Submission has been lost or does not exist. Please retry it in a few seconds."
         };
     }
 

@@ -33,6 +33,7 @@ public class CrystalClient : SndApiClient, ICrystalClient
                           throw new ArgumentNullException(nameof(CrystalClientOptions.ApiVersion));
         this.baseUri = new Uri(crystalClientOptions.Value.BaseUri
                        ?? throw new ArgumentNullException(nameof(CrystalClientOptions.BaseUri)));
+        
         // Crystal can return 404 in three cases:
         // - Submission is not found
         // - Submission is delayed
@@ -61,7 +62,7 @@ public class CrystalClient : SndApiClient, ICrystalClient
     {
         cancellationToken.ThrowIfCancellationRequested();
         var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/run/{algorithm}", UriKind.Relative));
-        var algorithmRequest = new AlgorithmRequest()
+        var algorithmRequest = new AlgorithmRequest
         {
             AlgorithmParameters = payload,
             CustomConfiguration = customConfiguration
@@ -86,30 +87,37 @@ public class CrystalClient : SndApiClient, ICrystalClient
         var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         var response = await this.awaitRetryPolicy.ExecuteAsync(ct => SendAuthenticatedRequestAsync(request, ct), cancellationToken);
-        response.EnsureSuccessStatusCode();
-        return JsonSerializer.Deserialize<RunResult>(await response.Content.ReadAsStreamAsync(), JsonSerializerOptions);        
+        
+        return response.IsSuccessStatusCode ? JsonSerializer.Deserialize<RunResult>(await response.Content.ReadAsStreamAsync(), JsonSerializerOptions) : RunResult.LostSubmission(requestId);
     }
 
     /// <inheritdoc/>
     public async Task<RunResult> AwaitRunAsync(string algorithm, string requestId, CancellationToken cancellationToken)
     {
         var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
+        var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        RunResult result = null;
+        
+        cancellationToken.ThrowIfCancellationRequested();
+        
         do
         {
-            using var cts = new CancellationTokenSource();
-            cts.CancelAfter(TimeSpan.FromSeconds(10));
-            var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            var response =
-                await this.awaitRetryPolicy.ExecuteAsync(ct => SendAuthenticatedRequestAsync(request, ct), cts.Token);
-            var result = JsonSerializer.Deserialize<RunResult>(await response.Content.ReadAsStreamAsync(),
-                JsonSerializerOptions);
+            var response = await this.awaitRetryPolicy.ExecuteAsync(ct => SendAuthenticatedRequestAsync(request, ct), default);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                continue;
+            }
+            
+            result = JsonSerializer.Deserialize<RunResult>(await response.Content.ReadAsStreamAsync(), JsonSerializerOptions);
             
             if (this.completedStages.Contains(result.Status))
             {
                 return result;
             }
+            
         } while (!cancellationToken.IsCancellationRequested);
-        
-        return RunResult.LostSubmission(requestId);
+
+        return result ?? RunResult.LostSubmission(requestId);
     }
 }
