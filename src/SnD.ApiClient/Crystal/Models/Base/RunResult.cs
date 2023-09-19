@@ -35,15 +35,14 @@ public record RunResult
             RunErrorMessage = "Submission has been lost or does not exist. Please retry it in a few seconds."
         };
     }
-
-    public static RunResult Pending(string requestId)
+    public static RunResult TimeoutSubmission(string requestId)
     {
         return new RunResult
         {
             RequestId = requestId,
-            Status = RequestLifeCycleStage.RUNNING,
+            Status = RequestLifeCycleStage.CLIENT_TIMEOUT,
             ResultUri = null,
-            RunErrorMessage = null
+            RunErrorMessage = "Submission timed out on the client side, but is still running on the server. Note that it might complete eventually, but the client has chosen to give up due to cancellation policy provided."
         };
-    }
+    }    
 }
