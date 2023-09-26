@@ -62,7 +62,7 @@ public class CrystalClient : SndApiClient, ICrystalClient
     }
 
     /// <inheritdoc/>
-    public async Task<RunResult> AwaitRunAsync(string algorithm, string requestId, CancellationToken cancellationToken, int pollIntervalSeconds = 1)
+    public async Task<RunResult> AwaitRunAsync(string algorithm, string requestId, CancellationToken cancellationToken = default, int pollIntervalSeconds = 1)
     {
         var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);

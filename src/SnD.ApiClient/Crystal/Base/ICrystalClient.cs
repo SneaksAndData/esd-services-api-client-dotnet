@@ -36,5 +36,5 @@ public interface ICrystalClient
     /// <param name="cancellationToken">Cancellation token for the operation timeout.</param>
     /// <param name="pollIntervalSeconds">Poll interval to check for run results in seconds.</param>
     /// <returns>RunResult instance</returns>
-    public Task<RunResult> AwaitRunAsync(string algorithm, string requestId, CancellationToken cancellationToken, int pollIntervalSeconds = 1);
+    public Task<RunResult> AwaitRunAsync(string algorithm, string requestId, CancellationToken cancellationToken = default, int pollIntervalSeconds = 1);
 }
