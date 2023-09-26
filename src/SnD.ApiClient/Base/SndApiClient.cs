@@ -16,7 +16,7 @@ public abstract class SndApiClient
     
     private readonly HttpClient httpClient;
     private readonly IJwtTokenExchangeProvider boxerConnector;
-    private readonly ILogger logger;
+    protected readonly ILogger logger;
     private string boxerToken;
 
     protected SndApiClient(HttpClient httpClient, IJwtTokenExchangeProvider boxerConnector, ILogger logger)

@@ -12,5 +12,6 @@ public enum RequestLifeCycleStage
     FAILED,
     SCHEDULING_TIMEOUT,
     DEADLINE_EXCEEDED,
-    THROTTLED
+    THROTTLED,
+    CLIENT_TIMEOUT
 }

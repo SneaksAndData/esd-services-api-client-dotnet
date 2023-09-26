@@ -16,6 +16,11 @@ public class CrystalClient : SndApiClient, ICrystalClient
     private readonly Uri baseUri;
     private readonly string apiVersion;
 
+    private readonly RequestLifeCycleStage[] completedStages = {
+        RequestLifeCycleStage.FAILED, RequestLifeCycleStage.COMPLETED, RequestLifeCycleStage.DEADLINE_EXCEEDED,
+        RequestLifeCycleStage.SCHEDULING_TIMEOUT
+    };
+
     public CrystalClient(IOptions<CrystalClientOptions> crystalClientOptions, HttpClient httpClient,
         IJwtTokenExchangeProvider boxerConnector, ILogger<CrystalClient> logger) : base(httpClient, boxerConnector, logger)
     {
@@ -32,7 +37,7 @@ public class CrystalClient : SndApiClient, ICrystalClient
     {
         cancellationToken.ThrowIfCancellationRequested();
         var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/run/{algorithm}", UriKind.Relative));
-        var algorithmRequest = new AlgorithmRequest()
+        var algorithmRequest = new AlgorithmRequest
         {
             AlgorithmParameters = payload,
             CustomConfiguration = customConfiguration
@@ -46,6 +51,7 @@ public class CrystalClient : SndApiClient, ICrystalClient
         return JsonSerializer.Deserialize<CreateRunResponse>(responseString, JsonSerializerOptions);
     }
 
+    /// <inheritdoc/>
     public async Task<RunResult> GetResultAsync(string algorithm, string requestId, CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
@@ -53,5 +59,51 @@ public class CrystalClient : SndApiClient, ICrystalClient
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
         return JsonSerializer.Deserialize<RunResult>(await response.Content.ReadAsStreamAsync(), JsonSerializerOptions);
+    }
+
+    /// <inheritdoc/>
+    public async Task<RunResult> AwaitRunAsync(string algorithm, string requestId, TimeSpan pollInterval, CancellationToken cancellationToken)
+    {
+        var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
+        var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        RunResult result = null;
+
+        if (cancellationToken == CancellationToken.None)
+        {
+            throw new ArgumentException("Cancellation token None is not allowed.");
+        }
+        
+        cancellationToken.ThrowIfCancellationRequested();
+        
+        do
+        {
+            // Crystal can return 404 in three cases:
+            // - Submission is not found
+            // - Submission is delayed
+            // - Submission was lost
+            // For the two latter ones we can wait a bit and see if the situation resolves.
+            await Task.Delay(pollInterval, cancellationToken);
+            var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                continue;
+            }
+
+            result = JsonSerializer.Deserialize<RunResult>(await response.Content.ReadAsStreamAsync(), JsonSerializerOptions);
+            
+            if (this.completedStages.Contains(result.Status))
+            {
+                return result;
+            }
+            
+        } while (!cancellationToken.IsCancellationRequested);
+
+        if (result != null && !this.completedStages.Contains(result.Status))
+        {
+            result = RunResult.TimeoutSubmission(requestId);
+        }
+
+        return result ?? RunResult.LostSubmission(requestId);
     }
 }
