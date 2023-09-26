@@ -62,11 +62,16 @@ public class CrystalClient : SndApiClient, ICrystalClient
     }
 
     /// <inheritdoc/>
-    public async Task<RunResult> AwaitRunAsync(string algorithm, string requestId, CancellationToken cancellationToken = default, int pollIntervalSeconds = 1)
+    public async Task<RunResult> AwaitRunAsync(string algorithm, string requestId, TimeSpan pollInterval, CancellationToken cancellationToken)
     {
         var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         RunResult result = null;
+
+        if (cancellationToken == CancellationToken.None)
+        {
+            throw new ArgumentException("Cancellation token None is not allowed.");
+        }
         
         cancellationToken.ThrowIfCancellationRequested();
         
@@ -77,7 +82,7 @@ public class CrystalClient : SndApiClient, ICrystalClient
             // - Submission is delayed
             // - Submission was lost
             // For the two latter ones we can wait a bit and see if the situation resolves.
-            await Task.Delay(TimeSpan.FromSeconds(pollIntervalSeconds), cancellationToken);
+            await Task.Delay(pollInterval, cancellationToken);
             var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
             
             if (!response.IsSuccessStatusCode)
