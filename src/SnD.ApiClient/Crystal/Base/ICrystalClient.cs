@@ -37,4 +37,15 @@ public interface ICrystalClient
     /// <param name="pollInterval">Poll interval to check for run results.</param>
     /// <returns>RunResult instance</returns>
     public Task<RunResult> AwaitRunAsync(string algorithm, string requestId, TimeSpan pollInterval, CancellationToken cancellationToken);
+    
+    /// <summary>
+    /// Reads the result of the run and converts it to the specified type.
+    /// </summary>
+    /// <param name="algorithm">Algorithm name</param>
+    /// <param name="requestId">Request ID received form <see cref="CreateRunAsync"/></param>
+    /// <param name="cancellationToken">Cancellation token for the operation timeout.</param>
+    /// <param name="converter">Function to convert bytes from results into TResult</param>
+    /// <typeparam name="TResult">Return type</typeparam>
+    /// <returns></returns>
+    public Task<TResult> GetResultAsync<TResult>(string algorithm, string requestId, Func<byte[], TResult> converter, CancellationToken cancellationToken = default);
 }
