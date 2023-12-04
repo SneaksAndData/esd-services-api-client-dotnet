@@ -39,7 +39,8 @@ public interface ICrystalClient
     public Task<RunResult> AwaitRunAsync(string algorithm, string requestId, TimeSpan pollInterval, CancellationToken cancellationToken);
     
     /// <summary>
-    /// Reads the result of the run and converts it to the specified type.
+    /// Reads the result of the run and converts it to the specified type using a specified converter function.
+    /// If the run is not completed yet or has failed, the method will return default value for the type.
     /// </summary>
     /// <param name="algorithm">Algorithm name</param>
     /// <param name="requestId">Request ID received form <see cref="CreateRunAsync"/></param>
