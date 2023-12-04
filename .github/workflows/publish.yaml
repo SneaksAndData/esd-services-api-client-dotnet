@@ -40,5 +40,5 @@ jobs:
         run: |
           set -e
           version=$(git describe --tags --abbrev=7 | tr -d "v")
-          dotnet pack --configuration Release SnD.ApiClient.csproj
+          dotnet pack --configuration Release SnD.ApiClient.Azure.csproj
           dotnet nuget push "bin/Release/SnD.ApiClient.Azure.$version.nupkg" --source "github"
