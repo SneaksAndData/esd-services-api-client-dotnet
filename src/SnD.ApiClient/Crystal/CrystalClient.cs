@@ -106,4 +106,25 @@ public class CrystalClient : SndApiClient, ICrystalClient
 
         return result ?? RunResult.LostSubmission(requestId);
     }
+
+    /// <inheritdoc/>
+    public async Task<TResult> GetResultAsync<TResult>(string algorithm, string requestId, Func<byte[], TResult> converter,
+        CancellationToken cancellationToken = default)
+    {
+        var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
+        var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        var runResult = JsonSerializer.Deserialize<RunResult>(await response.Content.ReadAsStreamAsync(), JsonSerializerOptions);
+        
+        if (runResult.ResultUri == null)
+        {
+            return default;
+        }
+        var resultsRequest = new HttpRequestMessage(HttpMethod.Get, runResult.ResultUri);
+        var resultData = await SendAuthenticatedRequestAsync(resultsRequest, cancellationToken);
+        resultData.EnsureSuccessStatusCode();
+        
+        return converter(await resultData.Content.ReadAsByteArrayAsync());
+    }
 }
