@@ -51,6 +51,31 @@ public abstract class SndApiClient
             .ExecuteAsync(async () => await ExecuteHttpRequest(request, cancellationToken));
         return response;
     }
+    
+    /// <summary>
+    /// Executes Http request without Boxer authentication
+    /// </summary>
+    /// <param name="request">Prepared HTTP request</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Http response</returns>
+    protected async Task<HttpResponseMessage> SendAnonymousRequestAsync(HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        var response = await Policy
+            .Handle<HttpRequestException>()
+            .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+            .WaitAndRetryAsync(3,
+                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                onRetryAsync: (result, _) =>
+                {
+                    logger.LogError(result.Exception, "Request error: {ResultStatusCode}, {ResultReasonPhrase}", 
+                        result.Result.StatusCode, result.Result.ReasonPhrase);
+                    return Task.CompletedTask;
+                }
+            )
+            .ExecuteAsync(async () => await httpClient.SendAsync(request, cancellationToken));
+        return response;
+    }
 
     private async Task<HttpResponseMessage> ExecuteHttpRequest(HttpRequestMessage request, CancellationToken cancellationToken)
     {

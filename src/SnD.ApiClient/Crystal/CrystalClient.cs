@@ -122,7 +122,7 @@ public class CrystalClient : SndApiClient, ICrystalClient
             return default;
         }
         var resultsRequest = new HttpRequestMessage(HttpMethod.Get, runResult.ResultUri);
-        var resultData = await SendAuthenticatedRequestAsync(resultsRequest, cancellationToken);
+        var resultData = await SendAnonymousRequestAsync(resultsRequest, cancellationToken);
         resultData.EnsureSuccessStatusCode();
         
         return converter(await resultData.Content.ReadAsByteArrayAsync());
