@@ -53,4 +53,12 @@ public static class ServiceCollectionExtensions
     {
         return services.AddSingleton<ICrystalClient, CrystalClient>();
     }
+    
+    /// <summary>
+    /// Add Boxer connector to DI
+    /// </summary>
+    public static IServiceCollection AddBoxerClient(this IServiceCollection services)
+    {
+        return services.AddSingleton<IBoxerClient, BoxerClient>();
+    }
 }
