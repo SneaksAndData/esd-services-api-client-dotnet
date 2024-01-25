@@ -28,7 +28,7 @@ public class BoxerJwtClaim : Claim
     /// <param name="path"></param>
     /// <param name="apiMethods"></param>
     /// <returns></returns>
-    public static BoxerJwtClaim FromBoxerClaimsApiResponse(string path, HashSet<ApiMethodElement> apiMethods)
+    public static BoxerJwtClaim Create(string path, HashSet<ApiMethodElement> apiMethods)
     {
         var value = string.Join(",",
             apiMethods.Count == Enum.GetNames(typeof(ApiMethodElement)).Length

@@ -17,8 +17,8 @@ public class BoxerClient : SndApiClient, IBoxerClient
 
     public BoxerClient
     (IOptions<BoxerClientOptions> boxerClientOptions, HttpClient httpClient,
-        IJwtTokenExchangeProvider boxerConnector, ILogger<CrystalClient> logger) : base(httpClient, boxerConnector,
-        logger)
+        IJwtTokenExchangeProvider boxerConnector, ILogger<BoxerClient> logger) : base(httpClient, boxerConnector,
+        logger) 
     {
         this.baseUri = new Uri(boxerClientOptions.Value.BaseUri
                                ?? throw new ArgumentNullException(nameof(CrystalClientOptions.BaseUri)));
