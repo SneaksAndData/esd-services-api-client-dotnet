@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace SnD.ApiClient.Boxer.Models;
 
@@ -30,10 +31,10 @@ public class BoxerJwtClaim : Claim
     /// <returns></returns>
     public static BoxerJwtClaim Create(string path, HashSet<ApiMethodElement> apiMethods)
     {
-        var value = string.Join(",",
-            apiMethods.Count == Enum.GetNames(typeof(ApiMethodElement)).Length
-                ? ".*"
-                : apiMethods.Select(v => v.ToString()));
+        // Should be ^(GET|POST)$ for example for GET and POST, should be .* for all
+        var value = apiMethods.Count == Enum.GetValues(typeof(ApiMethodElement)).Length
+            ? ".*"
+            : $"^({string.Join("|", apiMethods.Select(v => v.ToString()))})$";
         return new BoxerJwtClaim(path, value);
     }
 
@@ -45,12 +46,31 @@ public class BoxerJwtClaim : Claim
     /// <summary>
     /// API methods
     /// </summary>
-    public HashSet<ApiMethodElement> ApiMethods =>
-        new(
-            (Value == ".*"
-                ? Enum.GetNames(typeof(ApiMethodElement))
-                : Value.Split(','))
-            .Select(v => Enum.Parse(typeof(ApiMethodElement), v, true))
-            .Cast<ApiMethodElement>()
-        );
+    public HashSet<ApiMethodElement> ApiMethods => ParseClaims(Value);
+
+    
+    /// <summary>
+    /// Parse the value of the claim to a collection of ApiMethodElement
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    private static HashSet<ApiMethodElement> ParseClaims(string value)
+    {
+        if (value == ".*")
+        {
+            return new HashSet<ApiMethodElement>(Enum.GetValues(typeof(ApiMethodElement)).Cast<ApiMethodElement>());
+        }
+        if(Regex.Match(value, @"\((.*)\)").Groups.Count > 1)
+        {
+            return new HashSet<ApiMethodElement>(
+                Regex.Match(value, @"\((.*)\)").Groups[1].Value.Split('|')
+                    .Select(v => Enum.Parse(typeof(ApiMethodElement), v, true))
+                    .Cast<ApiMethodElement>());
+        }
+        if (Enum.TryParse<ApiMethodElement>(value, true, out var apiMethod))
+        {
+            return new HashSet<ApiMethodElement> { apiMethod };
+        }
+        return new HashSet<ApiMethodElement>();
+    }
 }

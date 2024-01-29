@@ -6,8 +6,6 @@ using SnD.ApiClient.Base;
 using SnD.ApiClient.Boxer.Base;
 using SnD.ApiClient.Boxer.Models;
 using SnD.ApiClient.Config;
-using SnD.ApiClient.Crystal;
-using SnD.ApiClient.Crystal.Models;
 
 namespace SnD.ApiClient.Boxer;
 
@@ -18,10 +16,10 @@ public class BoxerClient : SndApiClient, IBoxerClient
     public BoxerClient
     (IOptions<BoxerClientOptions> boxerClientOptions, HttpClient httpClient,
         IJwtTokenExchangeProvider boxerConnector, ILogger<BoxerClient> logger) : base(httpClient, boxerConnector,
-        logger) 
+        logger)
     {
-        this.baseUri = new Uri(boxerClientOptions.Value.BaseUri
-                               ?? throw new ArgumentNullException(nameof(CrystalClientOptions.BaseUri)));
+        baseUri = new Uri(boxerClientOptions.Value.BaseUri
+                          ?? throw new ArgumentNullException(nameof(CrystalClientOptions.BaseUri)));
     }
 
     public async Task<IEnumerable<BoxerJwtClaim>> GetClaimsByUserIdAsync(string userId, string provider,
@@ -51,7 +49,8 @@ public class BoxerClient : SndApiClient, IBoxerClient
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<bool> DeleteClaimsByUserIdAsync(string userId, string provider, IEnumerable<BoxerJwtClaim> claims, CancellationToken cancellationToken)
+    public async Task<bool> DeleteClaimsByUserIdAsync(string userId, string provider, IEnumerable<BoxerJwtClaim> claims,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var requestUri = new Uri(baseUri, new Uri($"claim/{provider}/{userId}", UriKind.Relative));
