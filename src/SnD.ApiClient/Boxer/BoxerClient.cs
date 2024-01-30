@@ -1,9 +1,11 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SnD.ApiClient.Base;
 using SnD.ApiClient.Boxer.Base;
+using SnD.ApiClient.Boxer.Exceptions;
 using SnD.ApiClient.Boxer.Models;
 using SnD.ApiClient.Config;
 
@@ -29,7 +31,7 @@ public class BoxerClient : SndApiClient, IBoxerClient
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
         request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
-        return response.IsSuccessStatusCode;
+        return response.EnsureSuccessStatusCode().IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteUserAsync(string userId, string provider, CancellationToken cancellationToken)
@@ -39,7 +41,11 @@ public class BoxerClient : SndApiClient, IBoxerClient
         var request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
         request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
-        return response.IsSuccessStatusCode;
+        return response.StatusCode switch
+        {
+            HttpStatusCode.NotFound => throw new UserNotFoundException(userId, provider),
+            _ => response.EnsureSuccessStatusCode().IsSuccessStatusCode
+        };
     }
 
     public async Task<IEnumerable<BoxerJwtClaim>> GetClaimsByUserIdAsync(string userId, string provider,
@@ -49,9 +55,12 @@ public class BoxerClient : SndApiClient, IBoxerClient
         var requestUri = new Uri(baseUri, new Uri($"claim/{provider}/{userId}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        var responseString = await response.Content.ReadAsStringAsync();
-        return BoxerJwtClaim.FromBoxerClaimsApiResponse(responseString);
+        return response.StatusCode switch
+        {
+            HttpStatusCode.NotFound => throw new UserNotFoundException(userId, provider),
+            _ => BoxerJwtClaim.FromBoxerClaimsApiResponse(await response.EnsureSuccessStatusCode().Content
+                .ReadAsStringAsync())
+        };
     }
 
     public async Task<bool> PatchClaimsByUserIdAsync(string userId, string provider, IEnumerable<BoxerJwtClaim> claims,
@@ -63,9 +72,11 @@ public class BoxerClient : SndApiClient, IBoxerClient
         var request = new HttpRequestMessage(new HttpMethod("PATCH"), requestUri);
         request.Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
-
-        return response.IsSuccessStatusCode;
+        return response.StatusCode switch
+        {
+            HttpStatusCode.NotFound => throw new UserNotFoundException(userId, provider),
+            _ => response.EnsureSuccessStatusCode().IsSuccessStatusCode
+        };
     }
 
     public async Task<bool> DeleteClaimsByUserIdAsync(string userId, string provider, IEnumerable<BoxerJwtClaim> claims,
@@ -77,8 +88,10 @@ public class BoxerClient : SndApiClient, IBoxerClient
         var request = new HttpRequestMessage(new HttpMethod("PATCH"), requestUri);
         request.Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
-
-        return response.IsSuccessStatusCode;
+        return response.StatusCode switch
+        {
+            HttpStatusCode.NotFound => throw new UserNotFoundException(userId, provider),
+            _ => response.EnsureSuccessStatusCode().IsSuccessStatusCode
+        };
     }
 }

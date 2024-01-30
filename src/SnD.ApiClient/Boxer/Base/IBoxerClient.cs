@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using SnD.ApiClient.Boxer.Exceptions;
 using SnD.ApiClient.Boxer.Models;
 
 namespace SnD.ApiClient.Boxer.Base;
@@ -32,6 +33,7 @@ public interface IBoxerClient
     /// <param name="provider">Identity provider (IDP) in Boxer</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Enumerator of object <see cref="BoxerJwtClaim"/> for the user</returns>
+    /// <exception cref="UserNotFoundException">Throws if the user is not found under that identity provider</exception>
     public Task<IEnumerable<BoxerJwtClaim>> GetClaimsByUserIdAsync(string userId, string provider, CancellationToken cancellationToken);
     
     /// <summary>
@@ -42,6 +44,7 @@ public interface IBoxerClient
     /// <param name="claims">Claims to set in the form of an enumerator of type <see cref="BoxerJwtClaim"/></param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if the operation was successful, false otherwise</returns>
+    /// <exception cref="UserNotFoundException">Throws if the user is not found under that identity provider</exception>
     public Task<bool> PatchClaimsByUserIdAsync(string userId, string provider, IEnumerable<BoxerJwtClaim> claims, CancellationToken cancellationToken);
     
     /// <summary>
@@ -52,6 +55,7 @@ public interface IBoxerClient
     /// <param name="provider">Identity provider (IDP) in Boxer</param>
     /// <param name="claims">Claims to delete in the form of an enumerator of type <see cref="BoxerJwtClaim"/></param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns></returns>
+    /// <returns>true on success</returns>
+    /// <exception cref="UserNotFoundException">Throws if the user is not found under that identity provider</exception>
     public Task<bool> DeleteClaimsByUserIdAsync(string userId, string provider, IEnumerable<BoxerJwtClaim> claims, CancellationToken cancellationToken);
 }
