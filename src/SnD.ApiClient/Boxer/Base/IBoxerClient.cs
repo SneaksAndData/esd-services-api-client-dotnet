@@ -7,6 +7,7 @@ public interface IBoxerClient
 {
     /// <summary>
     /// Create a jwt-user registration in Boxer for a given user id and provider
+    /// If user already exists, the method not do anything and return true
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="provider"></param>
