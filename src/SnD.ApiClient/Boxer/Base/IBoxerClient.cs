@@ -6,6 +6,15 @@ namespace SnD.ApiClient.Boxer.Base;
 public interface IBoxerClient
 {
     /// <summary>
+    /// Create a jwt-user registration in Boxer for a given user id and provider
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="provider"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>true if success or if user already exists</returns>
+    public Task<bool> CreateUserAsync(string userId, string provider, CancellationToken cancellationToken);
+    
+    /// <summary>
     /// Get claims by user id and provider
     /// </summary>
     /// <param name="userId">User principal name (UPN) in Boxer</param>

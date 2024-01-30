@@ -22,6 +22,16 @@ public class BoxerClient : SndApiClient, IBoxerClient
                           ?? throw new ArgumentNullException(nameof(CrystalClientOptions.BaseUri)));
     }
 
+    public async Task<bool> CreateUserAsync(string userId, string provider, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var requestUri = new Uri(baseUri, new Uri($"claim/{provider}/{userId}", UriKind.Relative));
+        var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+        request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+        var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<IEnumerable<BoxerJwtClaim>> GetClaimsByUserIdAsync(string userId, string provider,
         CancellationToken cancellationToken)
     {
@@ -41,8 +51,7 @@ public class BoxerClient : SndApiClient, IBoxerClient
         var requestUri = new Uri(baseUri, new Uri($"claim/{provider}/{userId}", UriKind.Relative));
         var requestBody = BoxerClaimsApiPatchBody.CreateInsertOperation(claims);
         var request = new HttpRequestMessage(new HttpMethod("PATCH"), requestUri);
-        request.Content =
-            new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+        request.Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
@@ -56,8 +65,7 @@ public class BoxerClient : SndApiClient, IBoxerClient
         var requestUri = new Uri(baseUri, new Uri($"claim/{provider}/{userId}", UriKind.Relative));
         var requestBody = BoxerClaimsApiPatchBody.CreateDeleteOperation(claims);
         var request = new HttpRequestMessage(new HttpMethod("PATCH"), requestUri);
-        request.Content =
-            new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+        request.Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
