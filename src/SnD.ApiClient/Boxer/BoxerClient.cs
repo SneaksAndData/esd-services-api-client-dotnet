@@ -32,6 +32,16 @@ public class BoxerClient : SndApiClient, IBoxerClient
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> DeleteUserAsync(string userId, string provider, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var requestUri = new Uri(baseUri, new Uri($"claim/{provider}/{userId}", UriKind.Relative));
+        var request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
+        request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+        var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<IEnumerable<BoxerJwtClaim>> GetClaimsByUserIdAsync(string userId, string provider,
         CancellationToken cancellationToken)
     {

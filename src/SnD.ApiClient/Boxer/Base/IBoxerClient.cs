@@ -16,6 +16,16 @@ public interface IBoxerClient
     public Task<bool> CreateUserAsync(string userId, string provider, CancellationToken cancellationToken);
     
     /// <summary>
+    /// Deletes a user from Boxer by user id and provider (jwt-user registration) and all its claims.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="provider"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public Task<bool> DeleteUserAsync(string userId, string provider, CancellationToken cancellationToken);
+    
+    
+    /// <summary>
     /// Get claims by user id and provider
     /// </summary>
     /// <param name="userId">User principal name (UPN) in Boxer</param>
