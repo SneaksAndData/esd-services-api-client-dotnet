@@ -8,7 +8,13 @@ namespace SnD.ApiClient.Boxer.Exceptions;
 [ExcludeFromCodeCoverage]
 public class UserNotFoundException : Exception
 {
-    public UserNotFoundException(string userId, string provider)
+    /// <summary>
+    /// Create a new instance of <see cref="UserNotFoundException"/>
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="provider"></param>
+    public UserNotFoundException(string userId, string provider) 
+        : base($"User {userId} not found under provider {provider}")
     {
         UserId = userId;
         Provider = provider;
