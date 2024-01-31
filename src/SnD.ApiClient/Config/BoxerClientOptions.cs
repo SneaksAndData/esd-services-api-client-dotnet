@@ -3,12 +3,7 @@
 public class BoxerClientOptions
 {
     /// <summary>
-    /// Base URI of the Boxer instance
+    /// Base URI of the Boxer API instance
     /// </summary>
     public string BaseUri { get; set; }
-    
-    /// <summary>
-    /// Uri of the Boxer claims endpoint
-    /// </summary>
-    public string ClaimsUri { get; set; }
 }
