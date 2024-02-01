@@ -19,8 +19,8 @@ public class BoxerJwtClaim : Claim
     /// <returns></returns>
     public static IEnumerable<BoxerJwtClaim> FromBoxerClaimsApiResponse(string response)
     {
-        var claims = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
-        return claims.Select(c => new BoxerJwtClaim(c.Key, c.Value));
+        return JsonSerializer.Deserialize<GetUserClaimsResponse>(response)
+        .Claims.Select(c => new BoxerJwtClaim(c.First().Key, c.First().Value));
     }
 
     /// <summary>

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -50,5 +52,15 @@ public class BoxerClaimsClientTests : IClassFixture<MockServiceFixture>, IClassF
         var boxerJwtClaim = BoxerJwtClaim.Create("path", new HashSet<ApiMethodElement>(apiMethods));
         Assert.Equal("path", boxerJwtClaim.Type);
         Assert.Equal(expectedValue, boxerJwtClaim.Value);
+    }
+
+    [Fact]
+    public void DeserializationTest()
+    {
+        var apiResponse = File.ReadAllText("Boxer/ApiSamples/GetUserSample.json");
+        var boxerJwtClaims = BoxerJwtClaim.FromBoxerClaimsApiResponse(apiResponse).ToArray();
+        Assert.Equal(2, boxerJwtClaims.Length);
+        Assert.Equal("myapi1.com/.*", boxerJwtClaims.First().Path);
+        Assert.Contains(ApiMethodElement.GET, boxerJwtClaims.First().ApiMethods);
     }
 }
