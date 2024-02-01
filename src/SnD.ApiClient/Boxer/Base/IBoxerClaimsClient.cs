@@ -4,7 +4,7 @@ using SnD.ApiClient.Boxer.Models;
 
 namespace SnD.ApiClient.Boxer.Base;
 
-public interface IBoxerClient
+public interface IBoxerClaimsClient
 {
     /// <summary>
     /// Create a jwt-user registration in Boxer for a given user id and provider
@@ -26,7 +26,7 @@ public interface IBoxerClient
     /// <returns></returns>
     /// <exception cref="UserNotFoundException">Throws if the user is not found under that identity provider</exception>
     /// <exception cref="HttpRequestException">Throws if the request to Boxer fails</exception>
-    public Task<bool> DeleteUserAsync(string userId, string provider, CancellationToken cancellationToken);
+    public Task<bool> DisassociateUserAsync(string userId, string provider, CancellationToken cancellationToken);
     
     /// <summary>
     /// Get claims by user id and provider
@@ -37,7 +37,7 @@ public interface IBoxerClient
     /// <returns>Enumerator of object <see cref="BoxerJwtClaim"/> for the user</returns>
     /// <exception cref="UserNotFoundException">Throws if the user is not found under that identity provider</exception>
     /// <exception cref="HttpRequestException">Throws if the request to Boxer fails</exception>
-    public Task<IEnumerable<BoxerJwtClaim>> GetClaimsByUserIdAsync(string userId, string provider, CancellationToken cancellationToken);
+    public Task<IEnumerable<BoxerJwtClaim>> GetUserClaimsAsync(string userId, string provider, CancellationToken cancellationToken);
     
     /// <summary>
     /// Set (Update/Edit) claims for user id and provider
@@ -49,7 +49,7 @@ public interface IBoxerClient
     /// <returns>True if the operation was successful, false otherwise</returns>
     /// <exception cref="UserNotFoundException">Throws if the user is not found under that identity provider</exception>
     /// <exception cref="HttpRequestException">Throws if the request to Boxer fails</exception>
-    public Task<bool> PatchClaimsByUserIdAsync(string userId, string provider, IEnumerable<BoxerJwtClaim> claims, CancellationToken cancellationToken);
+    public Task<bool> PatchUserClaimsAsync(string userId, string provider, IEnumerable<BoxerJwtClaim> claims, CancellationToken cancellationToken);
     
     /// <summary>
     /// Delete claims for user id and provider
@@ -62,5 +62,5 @@ public interface IBoxerClient
     /// <returns>true on success</returns>
     /// <exception cref="UserNotFoundException">Throws if the user is not found under that identity provider</exception>
     /// <exception cref="HttpRequestException">Throws if the request to Boxer fails</exception>
-    public Task<bool> DeleteClaimsByUserIdAsync(string userId, string provider, IEnumerable<BoxerJwtClaim> claims, CancellationToken cancellationToken);
+    public Task<bool> DeleteUserClaimsAsync(string userId, string provider, IEnumerable<BoxerJwtClaim> claims, CancellationToken cancellationToken);
 }

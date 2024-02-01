@@ -55,10 +55,10 @@ public static class ServiceCollectionExtensions
     }
     
     /// <summary>
-    /// Add Boxer connector to DI
+    /// Add Boxer Claims Client to DI
     /// </summary>
-    public static IServiceCollection AddBoxerClient(this IServiceCollection services)
+    public static IServiceCollection AddBoxerClaimsClient(this IServiceCollection services)
     {
-        return services.AddSingleton<IBoxerClient, BoxerClient>();
+        return services.AddSingleton<IBoxerClaimsClient, BoxerClaimsClient>();
     }
 }
