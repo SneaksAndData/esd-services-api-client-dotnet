@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using SnD.ApiClient.Base;
 using SnD.ApiClient.Boxer.Base;
 using SnD.ApiClient.Boxer.Exceptions;
+using SnD.ApiClient.Boxer.Extensions;
 using SnD.ApiClient.Boxer.Models;
 using SnD.ApiClient.Config;
 
@@ -43,7 +44,7 @@ public class BoxerClaimsClient : SndApiClient, IBoxerClaimsClient
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
         return response.StatusCode switch
         {
-            HttpStatusCode.NotFound => throw new UserNotFoundException(userId, provider),
+            HttpStatusCode.NotFound => throw new UserNotFoundException(),
             _ => response.EnsureSuccessStatusCode().IsSuccessStatusCode
         };
     }
@@ -55,12 +56,7 @@ public class BoxerClaimsClient : SndApiClient, IBoxerClaimsClient
         var requestUri = new Uri(claimsUri, new Uri($"claim/{provider}/{userId}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
-        return response.StatusCode switch
-        {
-            HttpStatusCode.NotFound => throw new UserNotFoundException(userId, provider),
-            _ => BoxerJwtClaim.FromBoxerClaimsApiResponse(await response.EnsureSuccessStatusCode().Content
-                .ReadAsStringAsync())
-        };
+        return await response.ExtractClaimsAsync();
     }
 
     public async Task<bool> PatchUserClaimsAsync(string userId, string provider, IEnumerable<BoxerJwtClaim> claims,
@@ -69,12 +65,12 @@ public class BoxerClaimsClient : SndApiClient, IBoxerClaimsClient
         cancellationToken.ThrowIfCancellationRequested();
         var requestUri = new Uri(claimsUri, new Uri($"claim/{provider}/{userId}", UriKind.Relative));
         var requestBody = BoxerClaimsApiPatchBody.CreateInsertOperation(claims);
-        var request = new HttpRequestMessage(new HttpMethod("PATCH"), requestUri);
+        var request = new HttpRequestMessage(HttpMethod.Patch, requestUri);
         request.Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
         return response.StatusCode switch
         {
-            HttpStatusCode.NotFound => throw new UserNotFoundException(userId, provider),
+            HttpStatusCode.NotFound => throw new UserNotFoundException(),
             _ => response.EnsureSuccessStatusCode().IsSuccessStatusCode
         };
     }
@@ -85,12 +81,12 @@ public class BoxerClaimsClient : SndApiClient, IBoxerClaimsClient
         cancellationToken.ThrowIfCancellationRequested();
         var requestUri = new Uri(claimsUri, new Uri($"claim/{provider}/{userId}", UriKind.Relative));
         var requestBody = BoxerClaimsApiPatchBody.CreateDeleteOperation(claims);
-        var request = new HttpRequestMessage(new HttpMethod("PATCH"), requestUri);
+        var request = new HttpRequestMessage(HttpMethod.Patch, requestUri);
         request.Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
         return response.StatusCode switch
         {
-            HttpStatusCode.NotFound => throw new UserNotFoundException(userId, provider),
+            HttpStatusCode.NotFound => throw new UserNotFoundException(),
             _ => response.EnsureSuccessStatusCode().IsSuccessStatusCode
         };
     }

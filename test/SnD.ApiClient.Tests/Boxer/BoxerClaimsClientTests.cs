@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -41,17 +42,15 @@ public class BoxerClaimsClientTests : IClassFixture<MockServiceFixture>, IClassF
     }
 
     [Theory]
-    [InlineData(new[] { ApiMethodElement.GET, ApiMethodElement.POST }, "^(GET|POST)$")]
-    [InlineData(new[] { ApiMethodElement.GET, ApiMethodElement.POST, ApiMethodElement.PUT }, "^(GET|POST|PUT)$")]
-    [InlineData(new[] { ApiMethodElement.GET, ApiMethodElement.POST, ApiMethodElement.PUT, ApiMethodElement.PATCH },
-        "^(GET|POST|PUT|PATCH)$")]
-    [InlineData(new[] { ApiMethodElement.GET, ApiMethodElement.POST, ApiMethodElement.PUT, ApiMethodElement.PATCH, ApiMethodElement.DELETE },
-        ".*")]
-    public void CreateWithSomeMethods(ApiMethodElement[] apiMethods, string expectedValue)
+    [InlineData(new[] { "GET", "POST" }, "^(GET|POST)$")]
+    [InlineData(new[] { "GET", "POST", "PUT" }, "^(GET|POST|PUT)$")]
+    [InlineData(new[] { "GET", "POST", "PUT", "PATCH" }, "^(GET|POST|PUT|PATCH)$")]
+    [InlineData(new[] { "GET", "POST", "PUT", "PATCH", "DELETE" }, "^(GET|POST|PUT|PATCH|DELETE)$")]
+    public void CreateWithSomeMethods(string[] apiMethods, string expectedValue)
     {
-        var boxerJwtClaim = BoxerJwtClaim.Create("path", new HashSet<ApiMethodElement>(apiMethods));
+        var boxerJwtClaim = BoxerJwtClaim.Create("path", new HashSet<HttpMethod>(apiMethods.Select(s=>new HttpMethod(s))));
         Assert.Equal("path", boxerJwtClaim.Type);
-        Assert.Equal(expectedValue, boxerJwtClaim.Value);
+        Assert.True(apiMethods.All(s => boxerJwtClaim.ApiMethods.Contains(new HttpMethod(s))));
     }
 
     [Fact]
@@ -61,6 +60,6 @@ public class BoxerClaimsClientTests : IClassFixture<MockServiceFixture>, IClassF
         var boxerJwtClaims = BoxerJwtClaim.FromBoxerClaimsApiResponse(apiResponse).ToArray();
         Assert.Equal(2, boxerJwtClaims.Length);
         Assert.Equal("myapi1.com/.*", boxerJwtClaims.First().Path);
-        Assert.Contains(ApiMethodElement.GET, boxerJwtClaims.First().ApiMethods);
+        Assert.Contains(HttpMethod.Get, boxerJwtClaims.First().ApiMethods);
     }
 }
