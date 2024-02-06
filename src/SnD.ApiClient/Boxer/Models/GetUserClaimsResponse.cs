@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace SnD.ApiClient.Boxer.Models;
 
-public class GetUserClaimsResponse
+internal class GetUserClaimsResponse
 {
     [JsonPropertyName("identityProvider")]
     public string IdentityProvider { get; set; }
