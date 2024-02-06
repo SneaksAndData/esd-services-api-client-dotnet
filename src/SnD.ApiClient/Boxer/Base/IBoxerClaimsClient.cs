@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using SnD.ApiClient.Boxer.Exceptions;
+﻿using SnD.ApiClient.Boxer.Exceptions;
 using SnD.ApiClient.Boxer.Models;
 
 namespace SnD.ApiClient.Boxer.Base;

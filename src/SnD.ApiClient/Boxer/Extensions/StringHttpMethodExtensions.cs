@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace SnD.ApiClient.Boxer.Extensions;
 
-public static class StringExtensions
+public static class StringHttpMethodExtensions
 {
     /// <summary>
     /// Convert a string to a collection of HttpMethod that matches (by regex) the string

@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using SnD.ApiClient.Boxer.Extensions;
 
 namespace SnD.ApiClient.Boxer.Models;
