@@ -35,4 +35,11 @@
       <ProjectReference Include="..\..\src\SnD.ApiClient\SnD.ApiClient.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Boxer\ApiSamples\GetUserSample.json" />
+      <Content Include="Boxer\ApiSamples\GetUserSample.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
 </Project>

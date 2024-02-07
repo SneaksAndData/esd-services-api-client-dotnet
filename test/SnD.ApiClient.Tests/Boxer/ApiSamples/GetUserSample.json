@@ -1,0 +1,13 @@
+{
+  "identityProvider": "idp_123",
+  "userId": "user_123",
+  "claims": [
+    {
+      "myapi1.com/.*": ".*"
+    },
+    {
+      "myapi2.com/path/.*": ".*"
+    }
+  ],
+  "billingId": null
+}
