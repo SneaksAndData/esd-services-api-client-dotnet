@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SnD.ApiClient.Beast;
+using SnD.ApiClient.Beast.Base;
 using SnD.ApiClient.Boxer;
 using SnD.ApiClient.Boxer.Base;
 using SnD.ApiClient.Config;
@@ -60,5 +62,13 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddBoxerClaimsClient(this IServiceCollection services)
     {
         return services.AddSingleton<IBoxerClaimsClient, BoxerClaimsClient>();
+    }
+    
+    /// <summary>
+    /// Add Beast Client to DI
+    /// </summary>
+    public static IServiceCollection AddBeastClient(this IServiceCollection services)
+    {
+        return services.AddSingleton<IBeastClient, BeastClient>();
     }
 }
