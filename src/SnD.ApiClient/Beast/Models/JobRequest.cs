@@ -1,7 +1,7 @@
 namespace SnD.ApiClient.Beast.Models;
 
 /// <summary>
-/// Job inputs sent by a client via POST
+/// Job inputs for a Beast job
 /// </summary>
 public record JobRequest
 {

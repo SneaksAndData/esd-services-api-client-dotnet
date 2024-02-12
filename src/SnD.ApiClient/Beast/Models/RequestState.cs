@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using SnD.ApiClient.Crystal.Models.Base;
 
 namespace SnD.ApiClient.Beast.Models;
 
