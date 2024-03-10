@@ -5,6 +5,7 @@ using SnD.ApiClient.Crystal.Models.Base;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SnD.ApiClient.Base;
+using SnD.ApiClient.Base.Models;
 using SnD.ApiClient.Boxer.Base;
 using SnD.ApiClient.Config;
 using SnD.ApiClient.Crystal.Base;
@@ -16,26 +17,35 @@ public class CrystalClient : SndApiClient, ICrystalClient
     private readonly Uri baseUri;
     private readonly string apiVersion;
 
-    private readonly RequestLifeCycleStage[] completedStages = {
+    private readonly RequestLifeCycleStage[] completedStages =
+    {
         RequestLifeCycleStage.FAILED, RequestLifeCycleStage.COMPLETED, RequestLifeCycleStage.DEADLINE_EXCEEDED,
         RequestLifeCycleStage.SCHEDULING_TIMEOUT
     };
 
     public CrystalClient(IOptions<CrystalClientOptions> crystalClientOptions, HttpClient httpClient,
-        IJwtTokenExchangeProvider boxerConnector, ILogger<CrystalClient> logger) : base(httpClient, boxerConnector, logger)
+        IJwtTokenExchangeProvider boxerConnector, ILogger<CrystalClient> logger) : base(httpClient, boxerConnector,
+        logger)
     {
         this.apiVersion = crystalClientOptions.Value.ApiVersion ??
                           throw new ArgumentNullException(nameof(CrystalClientOptions.ApiVersion));
         this.baseUri = new Uri(crystalClientOptions.Value.BaseUri
-                       ?? throw new ArgumentNullException(nameof(CrystalClientOptions.BaseUri)));
+                               ?? throw new ArgumentNullException(nameof(CrystalClientOptions.BaseUri)));
     }
 
     /// <inheritdoc/>
     public async Task<CreateRunResponse> CreateRunAsync(string algorithm, JsonElement payload,
-        AlgorithmConfiguration customConfiguration,
-        CancellationToken cancellationToken = default)
+            AlgorithmConfiguration customConfiguration,
+            CancellationToken cancellationToken = default,
+            ConcurrencyStrategy? concurrencyStrategy = ConcurrencyStrategy.IGNORE)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        
+        if ((concurrencyStrategy ?? ConcurrencyStrategy.IGNORE) != ConcurrencyStrategy.IGNORE)
+        {
+            throw new NotSupportedException("Concurrency strategy is not supported by Crystal");
+        }
+        
         var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/run/{algorithm}", UriKind.Relative));
         var algorithmRequest = new AlgorithmRequest
         {
@@ -52,9 +62,11 @@ public class CrystalClient : SndApiClient, ICrystalClient
     }
 
     /// <inheritdoc/>
-    public async Task<RunResult> GetResultAsync(string algorithm, string requestId, CancellationToken cancellationToken = default)
+    public async Task<RunResult> GetResultAsync(string algorithm, string requestId,
+        CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
+        var requestUri = new Uri(baseUri,
+            new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -62,9 +74,11 @@ public class CrystalClient : SndApiClient, ICrystalClient
     }
 
     /// <inheritdoc/>
-    public async Task<RunResult> AwaitRunAsync(string algorithm, string requestId, TimeSpan pollInterval, CancellationToken cancellationToken)
+    public async Task<RunResult> AwaitRunAsync(string algorithm, string requestId, TimeSpan pollInterval,
+        CancellationToken cancellationToken)
     {
-        var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
+        var requestUri = new Uri(baseUri,
+            new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         RunResult result = null;
 
@@ -72,9 +86,9 @@ public class CrystalClient : SndApiClient, ICrystalClient
         {
             throw new ArgumentException("Cancellation token None is not allowed.");
         }
-        
+
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         do
         {
             // Crystal can return 404 in three cases:
@@ -84,19 +98,19 @@ public class CrystalClient : SndApiClient, ICrystalClient
             // For the two latter ones we can wait a bit and see if the situation resolves.
             await Task.Delay(pollInterval, cancellationToken);
             var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 continue;
             }
 
-            result = JsonSerializer.Deserialize<RunResult>(await response.Content.ReadAsStreamAsync(), JsonSerializerOptions);
-            
+            result = JsonSerializer.Deserialize<RunResult>(await response.Content.ReadAsStreamAsync(),
+                JsonSerializerOptions);
+
             if (this.completedStages.Contains(result.Status))
             {
                 return result;
             }
-            
         } while (!cancellationToken.IsCancellationRequested);
 
         if (result != null && !this.completedStages.Contains(result.Status))
@@ -108,23 +122,27 @@ public class CrystalClient : SndApiClient, ICrystalClient
     }
 
     /// <inheritdoc/>
-    public async Task<TResult> GetResultAsync<TResult>(string algorithm, string requestId, Func<byte[], TResult> converter,
+    public async Task<TResult> GetResultAsync<TResult>(string algorithm, string requestId,
+        Func<byte[], TResult> converter,
         CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
+        var requestUri = new Uri(baseUri,
+            new Uri($"algorithm/{this.apiVersion}/results/{algorithm}/requests/{requestId}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
-        var runResult = JsonSerializer.Deserialize<RunResult>(await response.Content.ReadAsStreamAsync(), JsonSerializerOptions);
-        
+        var runResult =
+            JsonSerializer.Deserialize<RunResult>(await response.Content.ReadAsStreamAsync(), JsonSerializerOptions);
+
         if (runResult.ResultUri == null)
         {
             return default;
         }
+
         var resultsRequest = new HttpRequestMessage(HttpMethod.Get, runResult.ResultUri);
         var resultData = await SendAnonymousRequestAsync(resultsRequest, cancellationToken);
         resultData.EnsureSuccessStatusCode();
-        
+
         return converter(await resultData.Content.ReadAsByteArrayAsync());
     }
 }

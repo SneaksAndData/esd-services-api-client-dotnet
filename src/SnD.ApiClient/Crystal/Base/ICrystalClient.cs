@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using SnD.ApiClient.Base.Models;
 using SnD.ApiClient.Crystal.Models;
 using SnD.ApiClient.Crystal.Models.Base;
 
@@ -13,9 +14,11 @@ public interface ICrystalClient
     /// <param name="payload">Algorithm payload</param>
     /// <param name="customConfiguration">Custom configuration for algorithm run</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="concurrencyStrategy">Concurrency strategy (default is IGNORE)</param>
     /// <returns>Instance of object <see cref="CreateRunResponse"/> with run ID</returns>
     Task<CreateRunResponse> CreateRunAsync(string algorithm, JsonElement payload,
-        AlgorithmConfiguration customConfiguration, CancellationToken cancellationToken);
+        AlgorithmConfiguration customConfiguration, CancellationToken cancellationToken,
+        ConcurrencyStrategy? concurrencyStrategy = ConcurrencyStrategy.IGNORE);
 
     /// <summary>
     /// Query and return result of the run
@@ -24,7 +27,8 @@ public interface ICrystalClient
     /// <param name="requestId">Request ID received form <see cref="CreateRunAsync"/></param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>RunResult instance</returns>
-    public Task<RunResult> GetResultAsync(string algorithm, string requestId, CancellationToken cancellationToken = default);
+    public Task<RunResult> GetResultAsync(string algorithm, string requestId,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Awaits a run until it completes with any result or runs out of time set via cancellationToken.
@@ -36,8 +40,9 @@ public interface ICrystalClient
     /// <param name="cancellationToken">Cancellation token for the operation timeout.</param>
     /// <param name="pollInterval">Poll interval to check for run results.</param>
     /// <returns>RunResult instance</returns>
-    public Task<RunResult> AwaitRunAsync(string algorithm, string requestId, TimeSpan pollInterval, CancellationToken cancellationToken);
-    
+    public Task<RunResult> AwaitRunAsync(string algorithm, string requestId, TimeSpan pollInterval,
+        CancellationToken cancellationToken);
+
     /// <summary>
     /// Reads the result of the run and converts it to the specified type using a specified converter function.
     /// If the run is not completed yet or has failed, the method will return default value for the type.
@@ -48,5 +53,6 @@ public interface ICrystalClient
     /// <param name="converter">Function to convert bytes from results into TResult</param>
     /// <typeparam name="TResult">Return type</typeparam>
     /// <returns></returns>
-    public Task<TResult> GetResultAsync<TResult>(string algorithm, string requestId, Func<byte[], TResult> converter, CancellationToken cancellationToken = default);
+    public Task<TResult> GetResultAsync<TResult>(string algorithm, string requestId, Func<byte[], TResult> converter,
+        CancellationToken cancellationToken = default);
 }
