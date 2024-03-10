@@ -35,17 +35,18 @@ public class CrystalClient : SndApiClient, ICrystalClient
 
     /// <inheritdoc/>
     public async Task<CreateRunResponse> CreateRunAsync(string algorithm, JsonElement payload,
-            AlgorithmConfiguration customConfiguration,
-            CancellationToken cancellationToken = default,
-            ConcurrencyStrategy? concurrencyStrategy = ConcurrencyStrategy.IGNORE)
+        AlgorithmConfiguration customConfiguration,
+        CancellationToken cancellationToken = default)
+    {
+        return await RunAsync(algorithm, payload, customConfiguration, cancellationToken);
+    }
+
+    private async Task<CreateRunResponse> RunAsync(string algorithm, JsonElement payload,
+        AlgorithmConfiguration customConfiguration,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        
-        if ((concurrencyStrategy ?? ConcurrencyStrategy.IGNORE) != ConcurrencyStrategy.IGNORE)
-        {
-            throw new NotSupportedException("Concurrency strategy is not supported by Crystal");
-        }
-        
+
         var requestUri = new Uri(baseUri, new Uri($"algorithm/{this.apiVersion}/run/{algorithm}", UriKind.Relative));
         var algorithmRequest = new AlgorithmRequest
         {
@@ -59,6 +60,44 @@ public class CrystalClient : SndApiClient, ICrystalClient
         response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<CreateRunResponse>(responseString, JsonSerializerOptions);
+    }
+
+    /// <inheritdoc/>
+    public async Task<CreateRunResponse> CreateRunAsync(string algorithm, JsonElement payload,
+        AlgorithmConfiguration customConfiguration, string tagId,
+        ConcurrencyStrategy concurrencyStrategy, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(tagId))
+        {
+            throw new ArgumentException("TagId is required for concurrency strategy");
+        }
+
+        if (concurrencyStrategy != ConcurrencyStrategy.IGNORE)
+        {
+            var runningJobs = await GetJobIdsByTagAsync(algorithm, tagId, cancellationToken);
+
+            var incompleteJobs = runningJobs.Where(job => !completedStages.Contains(job.Status)).ToArray();
+            if (incompleteJobs.Any())
+            {
+                switch (concurrencyStrategy)
+                {
+                    case ConcurrencyStrategy.SKIP:
+                        return new CreateRunResponse
+                        {
+                            RequestId = null,
+                        };
+                    case ConcurrencyStrategy.AWAIT:
+                        await Task.WhenAll(incompleteJobs
+                            .Select(job =>
+                                AwaitRunAsync(algorithm, job.RequestId, TimeSpan.FromSeconds(5), cancellationToken)));
+                        break;
+                    case ConcurrencyStrategy.REPLACE:
+                        throw new NotImplementedException("ConcurrencyStrategy.REPLACE not implemented for Crystal");
+                }
+            }
+        }
+
+        return await RunAsync(algorithm, payload, customConfiguration, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -144,5 +183,20 @@ public class CrystalClient : SndApiClient, ICrystalClient
         resultData.EnsureSuccessStatusCode();
 
         return converter(await resultData.Content.ReadAsByteArrayAsync());
+    }
+
+
+    private async Task<RunResult[]> GetJobIdsByTagAsync(string algorithm, string clientTag,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var requestUri = new Uri(baseUri,
+            new Uri($"algorithm/{apiVersion}/results/{algorithm}/tags/{clientTag}", UriKind.Relative));
+        var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        var response = SendAuthenticatedRequestAsync(request, cancellationToken);
+        response.Result.EnsureSuccessStatusCode();
+        return JsonSerializer.Deserialize<RunResult[]>(
+            await response.Result.Content.ReadAsStringAsync(cancellationToken),
+            JsonSerializerOptions);
     }
 }
