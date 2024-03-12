@@ -8,6 +8,7 @@ using SnD.ApiClient.Beast.Base;
 using SnD.ApiClient.Beast.Models;
 using SnD.ApiClient.Boxer.Base;
 using SnD.ApiClient.Config;
+using SnD.ApiClient.Exceptions;
 
 namespace SnD.ApiClient.Beast;
 
@@ -41,7 +42,7 @@ public class BeastClient : SndApiClient, IBeastClient
         ConcurrencyStrategy? concurrencyStrategy = ConcurrencyStrategy.IGNORE)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         if ((concurrencyStrategy ?? ConcurrencyStrategy.IGNORE) != ConcurrencyStrategy.IGNORE)
         {
             if (string.IsNullOrEmpty(jobParams.ClientTag))
@@ -60,10 +61,8 @@ public class BeastClient : SndApiClient, IBeastClient
                 switch (concurrencyStrategy)
                 {
                     case ConcurrencyStrategy.SKIP: // TODO: Special skip return value?
-                        return new RequestState
-                        {
-                            Id = null
-                        };
+                        throw new ConcurrencyError(concurrencyStrategy.Value, incompleteJobs.First().Id,
+                            jobParams.ClientTag);
                     case ConcurrencyStrategy.AWAIT:
                         await Task.WhenAll(incompleteJobs
                             .Select(job => AwaitRunAsync(job.Id, TimeSpan.FromSeconds(5), cancellationToken)));
@@ -73,7 +72,7 @@ public class BeastClient : SndApiClient, IBeastClient
                 }
             }
         }
-        
+
         var requestUri = new Uri(baseUri,
             new Uri($"{apiVersion}/job/submit/{submissionConfigurationName}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri);

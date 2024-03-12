@@ -9,6 +9,7 @@ using SnD.ApiClient.Base.Models;
 using SnD.ApiClient.Boxer.Base;
 using SnD.ApiClient.Config;
 using SnD.ApiClient.Crystal.Base;
+using SnD.ApiClient.Exceptions;
 
 namespace SnD.ApiClient.Crystal;
 
@@ -82,10 +83,7 @@ public class CrystalClient : SndApiClient, ICrystalClient
                 switch (concurrencyStrategy)
                 {
                     case ConcurrencyStrategy.SKIP:
-                        return new CreateRunResponse
-                        {
-                            RequestId = null,
-                        };
+                        throw new ConcurrencyError(concurrencyStrategy, incompleteJobs.First().RequestId, tagId);
                     case ConcurrencyStrategy.AWAIT:
                         await Task.WhenAll(incompleteJobs
                             .Select(job =>
