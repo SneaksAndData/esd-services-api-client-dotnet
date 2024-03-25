@@ -79,7 +79,7 @@ public class BeastClient : SndApiClient, IBeastClient
         }
         
         var requestUri = new Uri(baseUri,
-            new Uri($"{apiVersion}/job/submit/{submissionConfigurationName}", UriKind.Relative));
+            new Uri($"job/submit/{submissionConfigurationName}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
         request.Content = new StringContent(JsonSerializer.Serialize(jobParams), Encoding.UTF8, "application/json");
         var response = SendAuthenticatedRequestAsync(request, cancellationToken);
@@ -125,7 +125,7 @@ public class BeastClient : SndApiClient, IBeastClient
     private async Task<string[]> GetJobIdsByTagAsync(string clientTag, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var requestUri = new Uri(baseUri, new Uri($"{apiVersion}/job/requests/tags/{clientTag}", UriKind.Relative));
+        var requestUri = new Uri(baseUri, new Uri($"job/requests/tags/{clientTag}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         var response = SendAuthenticatedRequestAsync(request, cancellationToken);
         response.Result.EnsureSuccessStatusCode();
@@ -136,7 +136,7 @@ public class BeastClient : SndApiClient, IBeastClient
     private async Task<RequestState> RequestState(string requestId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var requestUri = new Uri(baseUri, new Uri($"{apiVersion}/job/requests/{requestId}", UriKind.Relative));
+        var requestUri = new Uri(baseUri, new Uri($"job/requests/{requestId}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         var response = SendAuthenticatedRequestAsync(request, cancellationToken);
         response.Result.EnsureSuccessStatusCode();
