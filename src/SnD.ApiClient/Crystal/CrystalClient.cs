@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using SnD.ApiClient.Crystal.Models;
 using SnD.ApiClient.Crystal.Models.Base;
 using Microsoft.Extensions.Logging;
@@ -71,6 +72,10 @@ public class CrystalClient : SndApiClient, ICrystalClient
         if (string.IsNullOrEmpty(tagId))
         {
             throw new ArgumentException("TagId is required for concurrency strategy");
+        }
+        if(Regex.IsMatch(tagId, @"[^\w\d\-\._~]"))
+        {
+            throw new ArgumentException("TagId can only contain alphanumeric characters, hyphens, periods, underscores, and tildes");
         }
 
         if (concurrencyStrategy != ConcurrencyStrategy.IGNORE)

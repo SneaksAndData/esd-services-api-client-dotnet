@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SnD.ApiClient.Base;
@@ -72,7 +73,11 @@ public class BeastClient : SndApiClient, IBeastClient
                 }
             }
         }
-
+        if(Regex.IsMatch(jobParams.ClientTag ?? "", @"[^\w\d\-\._~]"))
+        {
+            throw new ArgumentException("ClientTag can only contain alphanumeric characters, hyphens, periods, underscores, and tildes");
+        }
+        
         var requestUri = new Uri(baseUri,
             new Uri($"{apiVersion}/job/submit/{submissionConfigurationName}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
