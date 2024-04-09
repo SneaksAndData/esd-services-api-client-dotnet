@@ -36,16 +36,16 @@ public class BeastClient : SndApiClient, IBeastClient
 
     /// <inheritdoc />
     public async Task<RequestState> SubmitJobAsync(JobRequest jobParams, string submissionConfigurationName,
-        CancellationToken cancellationToken = default,
-        ConcurrencyStrategy? concurrencyStrategy = ConcurrencyStrategy.IGNORE)
+        CancellationToken cancellationToken = default, ConcurrencyStrategy? concurrencyStrategy= null) 
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if ((concurrencyStrategy ?? ConcurrencyStrategy.IGNORE) != ConcurrencyStrategy.IGNORE)
+        concurrencyStrategy ??= ConcurrencyStrategy.IGNORE;
+        if (concurrencyStrategy != ConcurrencyStrategy.IGNORE)
         {
             if (string.IsNullOrEmpty(jobParams.ClientTag))
             {
-                throw new ArgumentException("ClientTag is required for concurrency strategy");
+                throw new ArgumentException("You must supply a client tag when using a concurrency strategy");
             }
 
             var existingJobIds = await GetJobIdsByTagAsync(jobParams.ClientTag, cancellationToken);
@@ -58,7 +58,7 @@ public class BeastClient : SndApiClient, IBeastClient
             {
                 switch (concurrencyStrategy)
                 {
-                    case ConcurrencyStrategy.SKIP: // TODO: Special skip return value?
+                    case ConcurrencyStrategy.SKIP:
                         throw new ConcurrencyError(concurrencyStrategy.Value, incompleteJobs.First().Id,
                             jobParams.ClientTag);
                     case ConcurrencyStrategy.AWAIT:
@@ -75,14 +75,15 @@ public class BeastClient : SndApiClient, IBeastClient
             throw new ArgumentException("ClientTag can only contain alphanumeric characters, hyphens, periods, underscores, and tildes");
         }
         
-        var requestUri = new Uri(baseUri,
-            new Uri($"job/submit/{submissionConfigurationName}", UriKind.Relative));
-        var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
-        request.Content = new StringContent(JsonSerializer.Serialize(jobParams), Encoding.UTF8, "application/json");
-        var response = SendAuthenticatedRequestAsync(request, cancellationToken);
-        response.Result.EnsureSuccessStatusCode();
+        var requestUri = new Uri(baseUri, new Uri($"job/submit/{submissionConfigurationName}", UriKind.Relative));
+        var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
+        {
+            Content = new StringContent(JsonSerializer.Serialize(jobParams), Encoding.UTF8, "application/json")
+        };
+        var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
         return JsonSerializer.Deserialize<RequestState>(
-            await response.Result.Content.ReadAsStringAsync(cancellationToken),
+            await response.Content.ReadAsStringAsync(cancellationToken),
             JsonSerializerOptions);
     }
 
@@ -124,9 +125,9 @@ public class BeastClient : SndApiClient, IBeastClient
         cancellationToken.ThrowIfCancellationRequested();
         var requestUri = new Uri(baseUri, new Uri($"job/requests/tags/{clientTag}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-        var response = SendAuthenticatedRequestAsync(request, cancellationToken);
-        response.Result.EnsureSuccessStatusCode();
-        return JsonSerializer.Deserialize<string[]>(await response.Result.Content.ReadAsStringAsync(cancellationToken),
+        var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return JsonSerializer.Deserialize<string[]>(await response.Content.ReadAsStringAsync(cancellationToken),
             JsonSerializerOptions);
     }
 
@@ -135,10 +136,10 @@ public class BeastClient : SndApiClient, IBeastClient
         cancellationToken.ThrowIfCancellationRequested();
         var requestUri = new Uri(baseUri, new Uri($"job/requests/{requestId}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-        var response = SendAuthenticatedRequestAsync(request, cancellationToken);
-        response.Result.EnsureSuccessStatusCode();
+        var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
         return JsonSerializer.Deserialize<RequestState>(
-            await response.Result.Content.ReadAsStringAsync(cancellationToken),
+            await response.Content.ReadAsStringAsync(cancellationToken),
             JsonSerializerOptions);
     }
 }

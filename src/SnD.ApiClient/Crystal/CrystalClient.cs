@@ -71,7 +71,7 @@ public class CrystalClient : SndApiClient, ICrystalClient
     {
         if (string.IsNullOrEmpty(tagId))
         {
-            throw new ArgumentException("TagId is required for concurrency strategy");
+            throw new ArgumentException("You must supply a client tag when using a concurrency strategy");
         }
         if(Regex.IsMatch(tagId, @"[^\w\d\-\._~]"))
         {
@@ -196,10 +196,10 @@ public class CrystalClient : SndApiClient, ICrystalClient
         var requestUri = new Uri(baseUri,
             new Uri($"algorithm/{apiVersion}/results/{algorithm}/tags/{clientTag}", UriKind.Relative));
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-        var response = SendAuthenticatedRequestAsync(request, cancellationToken);
-        response.Result.EnsureSuccessStatusCode();
+        var response = await SendAuthenticatedRequestAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
         return JsonSerializer.Deserialize<RunResult[]>(
-            await response.Result.Content.ReadAsStringAsync(cancellationToken),
+            await response.Content.ReadAsStringAsync(cancellationToken),
             JsonSerializerOptions);
     }
 }
