@@ -103,7 +103,7 @@ public class BeastClient : SndApiClient, IBeastClient
         do
         {
             await Task.Delay(pollInterval, cancellationToken);
-            result = await RequestState(requestId, cancellationToken);
+            result = await GetRequestState(requestId, cancellationToken);
             if (completedStages.Contains(result.LifeCycleStage))
             {
                 return result;
@@ -116,7 +116,7 @@ public class BeastClient : SndApiClient, IBeastClient
     /// <inheritdoc />
     public Task<RequestState> GetJobStateAsync(string requestId, CancellationToken cancellationToken = default)
     {
-        return RequestState(requestId, cancellationToken);
+        return GetRequestState(requestId, cancellationToken);
     }
 
 
@@ -131,7 +131,7 @@ public class BeastClient : SndApiClient, IBeastClient
             JsonSerializerOptions);
     }
 
-    private async Task<RequestState> RequestState(string requestId, CancellationToken cancellationToken = default)
+    private async Task<RequestState> GetRequestState(string requestId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var requestUri = new Uri(baseUri, new Uri($"job/requests/{requestId}", UriKind.Relative));
