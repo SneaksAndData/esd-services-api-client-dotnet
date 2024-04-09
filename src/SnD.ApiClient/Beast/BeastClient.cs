@@ -16,7 +16,6 @@ namespace SnD.ApiClient.Beast;
 public class BeastClient : SndApiClient, IBeastClient
 {
     private readonly Uri baseUri;
-    private readonly string apiVersion;
 
     private readonly HashSet<BeastRequestLifeCycleStage> completedStages = new()
     {
@@ -31,8 +30,6 @@ public class BeastClient : SndApiClient, IBeastClient
         IJwtTokenExchangeProvider boxerConnector, ILogger<BeastClient> logger) : base(httpClient, boxerConnector,
         logger)
     {
-        apiVersion = beastClientOptions.Value.ApiVersion ??
-                     throw new ArgumentNullException(nameof(BeastClientOptions.ApiVersion));
         baseUri = new Uri(beastClientOptions.Value.BaseUri
                           ?? throw new ArgumentNullException(nameof(BeastClientOptions.BaseUri)));
     }
