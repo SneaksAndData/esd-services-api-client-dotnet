@@ -9,6 +9,11 @@
         /// Container image used by this algorithm.
         /// </summary>
         public string ImageRepository { get; set; }
+        
+        /// <summary>
+        /// Container image registry used by this algorithm.
+        /// </summary>
+        public string ImageRegistry { get; set; }
 
         /// <summary>
         /// Image tag (version) used by this algorithm.
