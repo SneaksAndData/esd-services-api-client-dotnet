@@ -1,55 +1,55 @@
-using System.Text.Json;
 using KiotaPosts.Client;
-using KiotaPosts.Client.Algorithm.V1.Run.Item;
 using KiotaPosts.Client.Models.Models;
+using KiotaPosts.Client.Models.V1;
 using Microsoft.Extensions.Logging;
 using Microsoft.Kiota.Abstractions;
-using Polly;
-using Polly.Retry;
+using SnD.ApiClient.Config;
 using SnD.ApiClient.Nexus.Base;
 using SnD.ApiClient.Nexus.Models;
-using SnD.ApiClient.Nexus.Models.Extensions;
 
 namespace SnD.ApiClient.Nexus;
 
 public class NexusClient : INexusClient
 {
     private readonly NexusGeneratedClient client;
-    private readonly AsyncRetryPolicy<WithAlgorithmNamePostResponse?> retryPolicy;
     private readonly ILogger<NexusClient> logger;
-
-    public NexusClient(IRequestAdapter adapter, AsyncRetryPolicy<WithAlgorithmNamePostResponse?> retryPolicy,
-        ILogger<NexusClient> logger)
+    
+    public NexusClient(IRequestAdapter adapter, ILogger<NexusClient> logger)
     {
         this.client = new NexusGeneratedClient(adapter);
-        this.retryPolicy = retryPolicy;
+        this.logger = logger;
+    }
+    
+    public NexusClient(NexusClientOptions options, ILogger<NexusClient> logger)
+    {
+        this.client = new NexusGeneratedClient(options.ToRequestAdapter());
         this.logger = logger;
     }
 
-    public async Task<CreateRunResponse> CreateRunAsync(JsonElement algorithmParameters,
+    public async Task<CreateRunResponse> CreateRunAsync(AlgorithmParameters algorithmParameters,
         string algorithm,
-        CustomRunConfiguration? customConfiguration,
-        ParentRequest? parentRequest,
+        NexusAlgorithmSpec? customConfiguration,
+        AlgorithmRequestRef? parentRequest,
         string? tag,
         string? payloadValidFor,
         bool dryRun,
         CancellationToken cancellationToken)
     {
-        var request = new global::KiotaPosts.Client.Models.Models.AlgorithmRequest
+        var request = new AlgorithmRequest
         {
-            // AlgorithmParameters = algorithmParameters,
-            // CustomConfiguration = customConfiguration.ToNexusAlgorithmSpec(),
-            // ParentRequest = parentRequest.ToAlgorithmRequestRef(),
-            // Tag = tag,
-            // PayloadValidFor = payloadValidFor
+            AlgorithmParameters = algorithmParameters,
+            CustomConfiguration = customConfiguration,
+            ParentRequest = parentRequest,
+            Tag = tag,
+            PayloadValidFor = payloadValidFor
         };
 
-        var response = await this.retryPolicy.ExecuteAsync(async () =>
-        {
-            return await this.client.Algorithm.V1.Run[algorithm]
-                .PostAsWithAlgorithmNamePostResponseAsync(request,
-                    config => { config.QueryParameters.DryRun = dryRun.ToString(); }, cancellationToken);
-        });
+        var response = await this.client.Algorithm.V1.Run[algorithm]
+            .PostAsWithAlgorithmNamePostResponseAsync(request,
+                config =>
+                {
+                    config.QueryParameters.DryRun = dryRun.ToString();
+                }, cancellationToken);
 
         return new CreateRunResponse
         {
@@ -57,7 +57,7 @@ public class NexusClient : INexusClient
         };
     }
 
-    public async Task<RunResult> AwaitRunAsync(string requestId, string algorithm, TimeSpan pollInterval,
+    public async Task<RequestResult> AwaitRunAsync(string requestId, string algorithm, TimeSpan pollInterval,
         CancellationToken cancellationToken)
     {
         while (true)
@@ -67,7 +67,7 @@ public class NexusClient : INexusClient
                 .GetAsync(requestConfiguration: null, cancellationToken);
             if (result != null && IsFinished(result))
             {
-                return new RunResult(); // TODO
+                return result;
             }
 
             logger.LogInformation(
@@ -77,14 +77,14 @@ public class NexusClient : INexusClient
         }
     }
 
-    public async Task<List<RunResult>> AwaitTaggedRunsAsync(ICollection<string> tags,
+    public async Task<List<RequestResult>> AwaitTaggedRunsAsync(ICollection<string> tags,
         string? algorithm,
         TimeSpan pollInterval,
         CancellationToken cancellationToken)
     {
         var ids = await this.GetRunsByTags(tags, algorithm, cancellationToken);
 
-        var results = new List<RunResult>();
+        var results = new List<RequestResult>();
         foreach (var (expectedAlgorithm, requestId) in ids)
         {
             var result = await this.AwaitRunAsync(requestId, expectedAlgorithm, pollInterval, cancellationToken);
@@ -94,7 +94,8 @@ public class NexusClient : INexusClient
         return results;
     }
 
-    public async Task<CheckpointedRequest?> GetRequestMetadataAsync(string requestId, string algorithm, CancellationToken cancellationToken = default)
+    public async Task<CheckpointedRequest?> GetRequestMetadataAsync(string requestId, string algorithm,
+        CancellationToken cancellationToken = default)
     {
         return await this.client.Algorithm.V1.Metadata[algorithm].Requests[requestId].GetAsync(null, cancellationToken);
     }
@@ -114,17 +115,24 @@ public class NexusClient : INexusClient
 
     public bool IsFinished(RequestResult result)
     {
-        throw new NotImplementedException();
+        return result.Status?.ToLowerInvariant() switch
+        {
+            "failed" => true,
+            "completed" => true,
+            "deadline_exceeded" => true,
+            "scheduling_failed" => true,
+            "cancelled" => true,
+            _ => false
+        };
     }
 
-    public bool IsFinished(RunResult result)
+    public bool? HasSucceeded(RequestResult result)
     {
-        throw new NotImplementedException();
-    }
-
-    public bool? HasSucceeded(RunResult result)
-    {
-        throw new NotImplementedException();
+        if (!IsFinished(result))
+        {
+            return null;
+        }
+        return result.Status?.ToLowerInvariant() == "completed";
     }
 
     private async Task<List<(string, string)>> GetRunsByTags(ICollection<string> tags, string? algorithmName,
