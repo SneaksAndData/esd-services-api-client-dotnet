@@ -1,4 +1,6 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
+using Moq;
 
 namespace SnD.ApiClient.Tests
 {
@@ -11,6 +13,13 @@ namespace SnD.ApiClient.Tests
         {
             CrystalMockHttpClient = new HttpClient(new CrystalMockHttpHandler());
             BoxerMockHttpClient = new HttpClient(new BoxerMockHttpHandler());
+        }
+        
+        public Mock<HttpMessageHandler> GetMockedHttpClientHandler(Action<Mock<HttpMessageHandler>> setup)
+        {
+            var handlerMock = new Mock<HttpMessageHandler>();
+            setup(handlerMock);
+            return handlerMock;
         }
     }
     

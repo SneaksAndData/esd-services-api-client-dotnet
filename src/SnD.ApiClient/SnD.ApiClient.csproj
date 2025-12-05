@@ -31,9 +31,5 @@
       <PackageReference Include="System.Text.Json" Version="8.0.3" />
       <ProjectReference Include="..\SnD.ApiClient.Nexus.Generated\SnD.ApiClient.Nexus.Generated.csproj" />
     </ItemGroup>
-    
-    <ItemGroup>
-        <Folder Include="SnD.ApiClient" />
-    </ItemGroup>
 
 </Project>
