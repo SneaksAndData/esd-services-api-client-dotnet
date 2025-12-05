@@ -47,7 +47,8 @@ public abstract class SndApiClient
                         result.Result.StatusCode, result.Result.ReasonPhrase);
                     return Task.CompletedTask;
                 }
-            ).ExecuteAsync(async () => await ExecuteHttpRequest(request, cancellationToken));
+            )
+            .ExecuteAsync(async () => await ExecuteHttpRequest(request, cancellationToken));
         return response;
     }
     
