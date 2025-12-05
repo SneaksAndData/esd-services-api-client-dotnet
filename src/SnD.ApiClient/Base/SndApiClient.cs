@@ -36,7 +36,7 @@ public abstract class SndApiClient
     protected async Task<HttpResponseMessage> SendAuthenticatedRequestAsync(HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        var policy = Policy
+        var response = await Policy
             .Handle<HttpRequestException>()
             .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
             .WaitAndRetryAsync(3,
@@ -47,9 +47,8 @@ public abstract class SndApiClient
                         result.Result.StatusCode, result.Result.ReasonPhrase);
                     return Task.CompletedTask;
                 }
-            );
-            return await policy.ExecuteAsync(async () => await ExecuteHttpRequest(request, cancellationToken));
-        // return response;
+            ).ExecuteAsync(async () => await ExecuteHttpRequest(request, cancellationToken));
+        return response;
     }
     
     /// <summary>
