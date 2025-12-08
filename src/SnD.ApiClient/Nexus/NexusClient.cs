@@ -2,7 +2,9 @@ using KiotaPosts.Client;
 using KiotaPosts.Client.Models.Models;
 using KiotaPosts.Client.Models.V1;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Kiota.Abstractions;
+using Microsoft.Kiota.Abstractions.Authentication;
 using SnD.ApiClient.Config;
 using SnD.ApiClient.Nexus.Base;
 using SnD.ApiClient.Nexus.Models;
@@ -20,9 +22,9 @@ public class NexusClient : INexusClient
         this.logger = logger;
     }
     
-    public NexusClient(NexusClientOptions options, ILogger<NexusClient> logger)
+    public NexusClient(IOptions<NexusClientOptions> options, ILogger<NexusClient> logger, IAuthenticationProvider authenticationProvider, Func<HttpClient> httpClientFactory)
     {
-        this.client = new NexusGeneratedClient(options.ToRequestAdapter());
+        this.client = new NexusGeneratedClient(options.ToRequestAdapter(authenticationProvider, httpClientFactory));
         this.logger = logger;
     }
 
