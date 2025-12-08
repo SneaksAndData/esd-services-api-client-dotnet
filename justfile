@@ -40,10 +40,10 @@ install-boxer:
       --set boxer-validator-nginx.validator.replicas=1
 
 wait-for-services:
-    kubectl rollout status deployment/boxer-issuer --timeout=180s
-    kubectl rollout status deployment/boxer-validator-nginx --timeout=180s
-    kubectl rollout status deployment/ingress-nginx-controller --namespace ingress-nginx --timeout=180s
-    kubectl rollout status statefulset/keycloak-keycloakx --timeout=180s
+    kubectl rollout status deployment/boxer-issuer --timeout=360s
+    kubectl rollout status deployment/boxer-validator-nginx --timeout=360s
+    kubectl rollout status deployment/ingress-nginx-controller --namespace ingress-nginx --timeout=360s
+    kubectl rollout status statefulset/keycloak-keycloakx --timeout=360s
 
 install-ingress-controller:
     kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
