@@ -47,6 +47,19 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
     [Theory]
     public async Task TestCreateAlgorithmAsync(string algorithm, string expectedUrl)
     {
+        // Arrange
+        this.handlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(new { status = "COMPLETED" })
+            });
+        
+        // Act
         await nexusClient.CreateRunAsync(
             new AlgorithmRequest_algorithmParameters(),
             algorithm,
@@ -57,6 +70,7 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
             false,
             CancellationToken.None);
 
+        // Assert
         this.handlerMock.Protected().Verify(
             "SendAsync",
             Times.Once(),
@@ -69,25 +83,26 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
     [Theory]
     public async Task TestAwaitRunAsync(string algorithm, string expectedUrl)
     {
-        var response = new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = JsonContent.Create(new { status = "COMPLETED" })
-        };
-
+        // Arrange
         this.handlerMock.Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(response);
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(new { status = "COMPLETED" })
+            });
 
+        // Act
         await nexusClient.AwaitRunAsync(
             "12345",
             algorithm,
             TimeSpan.Zero,
             CancellationToken.None);
 
+        // Assert
         this.handlerMock.Protected().Verify(
             "SendAsync",
             Times.Once(),
@@ -96,11 +111,27 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
         );
     }
 
-    [InlineData("algorithm", "http://www.example.com/algorithm/v1/run/algorithm?dryRun=False")]
+    [InlineData("algorithm", 
+        "http://www.example.com/algorithm/v1/results/tags/tag1", 
+        "http://www.example.com/algorithm/v1/results/tags/tag2")]
     [Theory]
-    public async Task TestAwaitTaggedRunsAsync(string algorithm, string expectedUrl)
+    public async Task TestAwaitTaggedRunsAsync(string algorithm, string expectedUrl1, string expectedUrl2)
     {
-        var result = await nexusClient.AwaitTaggedRunsAsync(
+        
+        // Arrange
+        this.handlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(new { status = "COMPLETED" })
+            });
+
+        // Act
+        await nexusClient.AwaitTaggedRunsAsync(
             new List<string>
             {
                 "tag1",
@@ -109,11 +140,20 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
             algorithm,
             TimeSpan.Zero,
             CancellationToken.None);
-
+        
+        // Assert
         this.handlerMock.Protected().Verify(
             "SendAsync",
             Times.Once(),
-            ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == expectedUrl),
+            ItExpr.Is<HttpRequestMessage>(req => 
+                req.RequestUri.ToString() == expectedUrl1),
+            ItExpr.IsAny<CancellationToken>()
+        );
+        this.handlerMock.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req => 
+                req.RequestUri.ToString() == expectedUrl2),
             ItExpr.IsAny<CancellationToken>()
         );
     }
@@ -122,11 +162,13 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
     [Theory]
     public async Task TestGetRequestMetadataAsync(string algorithm, string expectedUrl)
     {
+        // Act
         await nexusClient.GetRequestMetadataAsync(
             "12345",
             algorithm,
             CancellationToken.None);
 
+        // Assert
         this.handlerMock.Protected().Verify(
             "SendAsync",
             Times.Once(),
@@ -139,6 +181,7 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
     [Theory]
     public async Task TestCancelRunAsync(string algorithm, string expectedUrl)
     {
+        // Act
         await nexusClient.CancelRunAsync(
             "12345",
             algorithm,
@@ -147,6 +190,7 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
             "Foreground",
             CancellationToken.None);
 
+        // Assert
         this.handlerMock.Protected().Verify(
             "SendAsync",
             Times.Once(),
