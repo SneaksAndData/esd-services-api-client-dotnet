@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+using KiotaPosts.Client.Models.Models;
+using KiotaPosts.Client.Models.V1;
 using SnD.ApiClient.Nexus.Models;
 
 namespace SnD.ApiClient.Nexus.Base;
@@ -18,9 +20,10 @@ public interface INexusClient
     /// <param name="cancellationToken">Cancellation token</param>
     /// <param name="dryRun">Dry run, if set to True, will only buffer a submission but skip job creation.</param>
     /// <returns>Instance of object <see cref="CreateRunResponse"/> with run ID</returns>
-    Task<CreateRunResponse> CreateRunAsync(JsonElement algorithmParameters, string algorithm,
-        CustomRunConfiguration? customConfiguration,
-        ParentRequest? parentRequest,
+    Task<CreateRunResponse> CreateRunAsync(AlgorithmRequest_algorithmParameters algorithmParameters,
+        string algorithm,
+        NexusAlgorithmSpec? customConfiguration,
+        AlgorithmRequestRef? parentRequest,
         string? tag,
         string? payloadValidFor,
         bool dryRun,
@@ -34,7 +37,7 @@ public interface INexusClient
     /// <param name="pollInterval">Poll interval to check for run results.</param>
     /// <param name="cancellationToken">Cancellation token for the operation timeout.</param>
     /// <returns>RunResult instance</returns>
-    public Task<RunResult> AwaitRunAsync(string requestId, string algorithm, TimeSpan pollInterval,
+    public Task<RequestResult> AwaitRunAsync(string requestId, string algorithm, TimeSpan pollInterval,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -45,16 +48,19 @@ public interface INexusClient
     /// <param name="pollInterval">Poll interval to check for run results.</param>
     /// <param name="cancellationToken">Cancellation token for the operation timeout.</param>
     /// <returns>RunResult instance</returns>
-    public Task<RunResult> AwaitTaggedRunsAsync(ICollection<string> tags, string? algorithm, TimeSpan pollInterval,
-        CancellationToken cancellationToken);
+    public Task<List<RequestResult>> AwaitTaggedRunsAsync(ICollection<string> tags, string? algorithm,
+        TimeSpan pollInterval,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns metadata and full runtime configuration for the request container.
     /// </summary>
     /// <param name="requestId">The unique identifier of the request.</param>
     /// <param name="algorithm">The name of the algorithm.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>RequestMetadata instance if found; otherwise, null.</returns>
-    public RequestMetadata? GetRequestMetadata(string requestId, string algorithm);
+    public Task<CheckpointedRequest?> GetRequestMetadataAsync(string requestId, string algorithm,
+        CancellationToken cancellationToken = default);
 
 
     /// <summary>
@@ -65,19 +71,21 @@ public interface INexusClient
     /// <param name="initiator">Person initiating the cancel.</param>
     /// <param name="reason">Reason for cancellation.</param>
     /// <param name="policy">Cleanup policy. Default is "Background".</param>
-    void CancelRun(string requestId, string algorithm, string initiator, string reason, string policy = "Background");
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public Task CancelRunAsync(string requestId, string algorithm, string initiator, string reason, string policy = "Background",
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Check if a run has finished.
     /// </summary>
     /// <param name="result">RunResult instance.</param>
     /// <returns>True if the run has finished; otherwise, false.</returns>
-    bool IsFinished(RunResult result);
+    bool IsFinished(RequestResult result);
 
     /// <summary>
     /// Check if a run has succeeded. Returns null if the run is not finished yet.
     /// </summary>
     /// <param name="result">RunResult instance.</param>
     /// <returns>True if succeeded, false if failed, or null if not finished yet.</returns>
-    bool? HasSucceeded(RunResult result);
+    bool? HasSucceeded(RequestResult result);
 }
