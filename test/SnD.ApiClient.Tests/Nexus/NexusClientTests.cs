@@ -56,7 +56,7 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
             )
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = JsonContent.Create(new { status = "COMPLETED" })
+                Content = JsonContent.Create(new { requestId = "12345" })
             });
         
         // Act
