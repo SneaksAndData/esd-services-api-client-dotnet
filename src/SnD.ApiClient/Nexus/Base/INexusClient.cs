@@ -20,7 +20,7 @@ public interface INexusClient
     /// <param name="cancellationToken">Cancellation token</param>
     /// <param name="dryRun">Dry run, if set to True, will only buffer a submission but skip job creation.</param>
     /// <returns>Instance of object <see cref="CreateRunResponse"/> with run ID</returns>
-    Task<CreateRunResponse> CreateRunAsync(AlgorithmParameters algorithmParameters,
+    Task<CreateRunResponse> CreateRunAsync(AlgorithmRequest_algorithmParameters algorithmParameters,
         string algorithm,
         NexusAlgorithmSpec? customConfiguration,
         AlgorithmRequestRef? parentRequest,

@@ -26,7 +26,7 @@ public class NexusClient : INexusClient
         this.logger = logger;
     }
 
-    public async Task<CreateRunResponse> CreateRunAsync(AlgorithmParameters algorithmParameters,
+    public async Task<CreateRunResponse> CreateRunAsync(AlgorithmRequest_algorithmParameters algorithmParameters,
         string algorithm,
         NexusAlgorithmSpec? customConfiguration,
         AlgorithmRequestRef? parentRequest,

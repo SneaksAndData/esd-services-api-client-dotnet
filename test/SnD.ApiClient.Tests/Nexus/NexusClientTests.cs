@@ -3,24 +3,16 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using KiotaPosts.Client.Models.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Abstractions.Authentication;
-using Microsoft.Kiota.Abstractions.Serialization;
 using Microsoft.Kiota.Http.HttpClientLibrary;
 using Moq;
 using Moq.Protected;
-using SnD.ApiClient.Boxer;
-using SnD.ApiClient.Config;
-using SnD.ApiClient.Crystal.Models.Base;
 using SnD.ApiClient.Nexus;
 using SnD.ApiClient.Nexus.Base;
-using SnD.ApiClient.Nexus.Models;
 using Xunit;
 
 namespace SnD.ApiClient.Tests.Nexus;
@@ -56,7 +48,7 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
     public async Task TestCreateAlgorithmAsync(string algorithm, string expectedUrl)
     {
         await nexusClient.CreateRunAsync(
-            new AlgorithmParameters(),
+            new AlgorithmRequest_algorithmParameters(),
             algorithm,
             null,
             null,
