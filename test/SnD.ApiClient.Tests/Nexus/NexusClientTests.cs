@@ -7,10 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using KiotaPosts.Client.Models.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Http.HttpClientLibrary;
 using Moq;
 using Moq.Protected;
+using SnD.ApiClient.Boxer;
+using SnD.ApiClient.Boxer.Base;
+using SnD.ApiClient.Config;
 using SnD.ApiClient.Nexus;
 using SnD.ApiClient.Nexus.Base;
 using Xunit;
@@ -21,6 +25,7 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
 {
     private readonly INexusClient nexusClient;
     private readonly Mock<HttpMessageHandler> handlerMock;
+    private readonly Mock<IJwtTokenExchangeProvider> tokenProviderMock;
 
     public NexusClientTests(MockServiceFixture mockServiceFixture, LoggerFixture loggerFixture)
     {
@@ -35,12 +40,27 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
                 .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
         });
 
-        var httpClient = new HttpClient(handlerMock.Object);
-        httpClient.BaseAddress = new Uri("http://www.example.com/");
-        var authProvider = new AnonymousAuthenticationProvider();
-        var adapter = new HttpClientRequestAdapter(authProvider, httpClient: httpClient);
+        this.tokenProviderMock = mockServiceFixture.GetMockedJwtTokenExchangeProvider(m =>
+        {
+            m.Setup(tp => tp.GetTokenAsync(It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync("token");
+        });
 
-        this.nexusClient = new NexusClient(adapter, loggerFixture.Factory.CreateLogger<NexusClient>());
+        var options = Options.Create(new NexusClientOptions
+        {
+            BaseUri = "http://www.example.com/",
+            ApiVersion = "v1"
+        });
+        var boxerAuthenticationProvider = new BoxerAuthenticationProvider(this.tokenProviderMock.Object);
+        this.nexusClient = new NexusClient(options,
+            loggerFixture.Factory.CreateLogger<NexusClient>(),
+            boxerAuthenticationProvider, () =>
+            {
+                var client = new HttpClient(handlerMock.Object);
+                client.BaseAddress = new Uri("http://www.example.com/");
+                return client;
+            });
     }
 
     [InlineData("algorithm", "http://www.example.com/algorithm/v1/run/algorithm?dryRun=False")]
@@ -58,7 +78,7 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
             {
                 Content = JsonContent.Create(new { requestId = "12345" })
             });
-        
+
         // Act
         await nexusClient.CreateRunAsync(
             new AlgorithmRequest_algorithmParameters(),
@@ -111,13 +131,12 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
         );
     }
 
-    [InlineData("algorithm", 
-        "http://www.example.com/algorithm/v1/results/tags/tag1", 
+    [InlineData("algorithm",
+        "http://www.example.com/algorithm/v1/results/tags/tag1",
         "http://www.example.com/algorithm/v1/results/tags/tag2")]
     [Theory]
     public async Task TestAwaitTaggedRunsAsync(string algorithm, string expectedUrl1, string expectedUrl2)
     {
-        
         // Arrange
         this.handlerMock.Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -140,19 +159,19 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
             algorithm,
             TimeSpan.Zero,
             CancellationToken.None);
-        
+
         // Assert
         this.handlerMock.Protected().Verify(
             "SendAsync",
             Times.Once(),
-            ItExpr.Is<HttpRequestMessage>(req => 
+            ItExpr.Is<HttpRequestMessage>(req =>
                 req.RequestUri.ToString() == expectedUrl1),
             ItExpr.IsAny<CancellationToken>()
         );
         this.handlerMock.Protected().Verify(
             "SendAsync",
             Times.Once(),
-            ItExpr.Is<HttpRequestMessage>(req => 
+            ItExpr.Is<HttpRequestMessage>(req =>
                 req.RequestUri.ToString() == expectedUrl2),
             ItExpr.IsAny<CancellationToken>()
         );
@@ -197,5 +216,55 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
             ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == expectedUrl),
             ItExpr.IsAny<CancellationToken>()
         );
+    }
+
+    [InlineData("algorithm", "http://www.example.com/algorithm/v1/cancel/algorithm/requests/12345")]
+    [Theory]
+    public async Task TestUsesAuthenticationProvider(string algorithm, string expectedUrl)
+    {
+        // Arrange
+        this.handlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(new { status = "COMPLETED" })
+            });
+
+        // Act
+        await nexusClient.CancelRunAsync(
+            "12345",
+            algorithm,
+            "initiator",
+            "reason",
+            "Foreground",
+            CancellationToken.None);
+
+        await nexusClient.CancelRunAsync(
+            "12345",
+            algorithm,
+            "initiator",
+            "reason",
+            "Foreground",
+            CancellationToken.None);
+
+        // Assert
+        this.handlerMock.Protected().Verify(
+            "SendAsync",
+            Times.Exactly(2),
+            ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == expectedUrl &&
+                                                 req.Headers.Authorization != null &&
+                                                 req.Headers.Authorization.Scheme == "Bearer" &&
+                                                 req.Headers.Authorization.Parameter == "token"),
+            ItExpr.IsAny<CancellationToken>()
+        );
+
+        // Assert that the provider was called twice
+        // Verifies that token provider issues a new token every time when called by the Nexus client
+        tokenProviderMock.Verify(m =>
+            m.GetTokenAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 }
