@@ -25,6 +25,7 @@ public class NexusClient : INexusClient
     
     public NexusClient(IOptions<NexusClientOptions> options,
         ILogger<NexusClient> logger,
+        ILoggerFactory loggerFactory,
         IAuthenticationProvider authenticationProvider,
         Func<HttpClient>? httpClientFactory,
         Func<HttpClientRequestAdapter, IRequestAdapter>? adapterFactory = null)
@@ -32,7 +33,7 @@ public class NexusClient : INexusClient
         this.client = new NexusGeneratedClient(
             options.ToRequestAdapter(
                 authenticationProvider,
-                adapterFactory ?? (adapter => new RetryAdapter(adapter)),
+                adapterFactory ?? (adapter => new RetryAdapter(adapter, loggerFactory.CreateLogger<RetryAdapter>())),
                 httpClientFactory ?? (() => new HttpClient())
             )
         );

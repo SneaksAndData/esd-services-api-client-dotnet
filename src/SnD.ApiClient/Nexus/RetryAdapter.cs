@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Abstractions.Serialization;
 using Microsoft.Kiota.Abstractions.Store;
@@ -8,10 +9,12 @@ namespace SnD.ApiClient.Nexus;
 public class RetryAdapter: IRequestAdapter, IDisposable
 {
     private readonly IRequestAdapter baseAdapter;
+    private readonly ILogger<RetryAdapter> logger;
 
-    public RetryAdapter(IRequestAdapter baseAdapter)
+    public RetryAdapter(IRequestAdapter baseAdapter, ILogger<RetryAdapter> logger)
     {
         this.baseAdapter = baseAdapter;
+        this.logger = logger;
     }
     
     public void EnableBackingStore(IBackingStoreFactory backingStoreFactory)
@@ -82,6 +85,19 @@ public class RetryAdapter: IRequestAdapter, IDisposable
     {
         return Policy<TModelType>
             .Handle<Exception>()
-            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+            .WaitAndRetryAsync(
+                3, 
+                _ => TimeSpan.FromSeconds(5),
+                (exception, timeSpan, retryCount, _) =>
+                {
+                    logger.LogWarning(
+                        exception.Exception,
+                        "Retry {RetryCount} after {Delay} due to: {Message}",
+                        retryCount,
+                        timeSpan,
+                        exception.Exception.Message
+                    );
+                } 
+                );
     }
 }

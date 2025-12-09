@@ -53,6 +53,7 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
         var boxerAuthenticationProvider = new BoxerAuthenticationProvider(this.tokenProviderMock.Object);
         this.nexusClient = new NexusClient(options,
             loggerFixture.Factory.CreateLogger<NexusClient>(),
+            loggerFixture.Factory,
             boxerAuthenticationProvider, () =>
             {
                 var client = new HttpClient(handlerMock.Object);
