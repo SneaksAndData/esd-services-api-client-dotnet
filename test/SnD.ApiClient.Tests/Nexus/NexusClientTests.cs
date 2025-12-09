@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using KiotaPosts.Client.Models.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Kiota.Abstractions.Authentication;
-using Microsoft.Kiota.Http.HttpClientLibrary;
 using Moq;
 using Moq.Protected;
 using SnD.ApiClient.Boxer;
@@ -266,5 +264,45 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
         // Verifies that token provider issues a new token every time when called by the Nexus client
         tokenProviderMock.Verify(m =>
             m.GetTokenAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+    
+    [InlineData("algorithm", "http://www.example.com/algorithm/v1/results/algorithm/requests/12345")]
+    [Theory]
+    public async Task TestUsesRetryPolicy(string algorithm, string expectedUrl)
+    {
+        // Arrange
+        this.handlerMock.Protected()
+            .SetupSequence<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.NotFound))
+            .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.NotFound))
+            .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(new { status = "COMPLETED" })
+            });
+
+        var result = await nexusClient.AwaitRunAsync(
+            "12345",
+            algorithm,
+            TimeSpan.Zero,
+            CancellationToken.None);
+        
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("COMPLETED", result.Status);
+        this.handlerMock.Protected().Verify(
+            "SendAsync",
+            Times.Exactly(3),
+            ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == expectedUrl),
+            ItExpr.IsAny<CancellationToken>()
+        );
+
+        // Assert that the provider was called twice
+        // Verifies that token provider issues a new token every time when called by the Nexus client
+        tokenProviderMock.Verify(m =>
+            m.GetTokenAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Exactly(3));
     }
 }
