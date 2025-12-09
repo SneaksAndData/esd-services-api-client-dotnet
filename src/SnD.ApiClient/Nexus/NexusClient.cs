@@ -23,23 +23,6 @@ public class NexusClient : INexusClient
         this.logger = logger;
     }
     
-    public NexusClient(IOptions<NexusClientOptions> options,
-        ILogger<NexusClient> logger,
-        ILoggerFactory loggerFactory,
-        IAuthenticationProvider authenticationProvider,
-        Func<HttpClient>? httpClientFactory,
-        Func<HttpClientRequestAdapter, IRequestAdapter>? adapterFactory = null)
-    {
-        this.client = new NexusGeneratedClient(
-            options.ToRequestAdapter(
-                authenticationProvider,
-                adapterFactory ?? (adapter => new RetryAdapter(adapter, loggerFactory.CreateLogger<RetryAdapter>())),
-                httpClientFactory ?? (() => new HttpClient())
-            )
-        );
-        this.logger = logger;
-    }
-
     public async Task<CreateRunResponse> CreateRunAsync(AlgorithmRequest_algorithmParameters algorithmParameters,
         string algorithm,
         NexusAlgorithmSpec? customConfiguration,
