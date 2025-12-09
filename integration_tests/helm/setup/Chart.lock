@@ -8,5 +8,8 @@ dependencies:
 - name: boxer-validator-nginx
   repository: oci://ghcr.io/sneaksanddata/helm
   version: v0.0.15
-digest: sha256:5f1192696ab1c7824862f2024e691105b705b0a34bfaa8075b2873ecaa595b06
-generated: "2025-10-24T14:53:24.367292+02:00"
+- name: nexus
+  repository: oci://ghcr.io/sneaksanddata/helm
+  version: v1.1.11
+digest: sha256:83bc04e804ebb7099f237f08983df2ffa7d2a9c1d696b8f8af50baf508049773
+generated: "2025-12-08T16:32:41.873896+01:00"

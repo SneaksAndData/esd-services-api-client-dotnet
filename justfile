@@ -3,6 +3,8 @@ default:
 
 up: start-kind-cluster \
 build-deps \
+deploy-scilla \
+create-nexus-secret \
 install-boxer \
 install-ingress-controller \
 instll-keycloak \
@@ -37,7 +39,11 @@ install-boxer:
       --set 'boxer-issuer.issuer.config.backend.kubernetes.resourceOwnerLabel=application/boxer-issuer' \
       --set 'boxer-validator-nginx.validator.config.listenIp=0.0.0.0' \
       --set 'boxer-validator-nginx.validator.config.backend.kubernetes.resourceOwnerLabel=application/boxer-validator-nginx' \
-      --set boxer-validator-nginx.validator.replicas=1
+      --set 'boxer-validator-nginx.validator.replicas=1' \
+      --set 'nexus.scheduler.replicas=1' \
+      --set 'nexus.scheduler.replicas=1' \
+      --set 'scheduler.config.cqlStore.type=scilla' \
+      
 
 wait-for-services:
     kubectl rollout status deployment/boxer-issuer --timeout=180s
@@ -77,3 +83,11 @@ configure-keycloak:
       ghcr.io/opentofu/opentofu:latest plan
     docker run --rm --network=host -v $(pwd)/integration_tests/terraform/keycloak:/tofu --workdir /tofu \
       ghcr.io/opentofu/opentofu:latest apply -auto-approve
+
+
+create-nexus-secret:
+    kind get kubeconfig | yq -o json eval - | kubectl create secret generic nexus-shards --from-file=nexus-worker-cluster=/dev/stdin
+    
+    
+deploy-scilla:
+    kubectl apply -f integration_tests/scilla-deployment.yaml 
