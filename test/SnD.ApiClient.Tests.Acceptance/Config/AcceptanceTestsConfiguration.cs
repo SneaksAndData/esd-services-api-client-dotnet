@@ -1,18 +1,14 @@
-﻿using SnD.ApiClient.Crystal.Models.Base;
+﻿using KiotaPosts.Client.Models.Models;
+using SnD.ApiClient.Nexus.Models;
 
 namespace SnD.ApiClient.Tests.Acceptance.Config;
 
 public class AcceptanceTestsConfiguration
 {
     /// <summary>
-    /// Algorithm configuration
+    /// Algorithm request
     /// </summary>
-    public AlgorithmConfiguration AlgorithmConfiguration { get; set; }
-    
-    /// <summary>
-    /// Payload serialized to string
-    /// </summary>
-    public string AlgorithmPayload { get; set; }
+    public NexusAlgorithmRequest AlgorithmRequest { get; set; }
     
     /// <summary>
     /// Name of the algorithm

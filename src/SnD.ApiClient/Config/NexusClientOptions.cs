@@ -6,9 +6,4 @@ public class NexusClientOptions
     /// Base URI of the Crystal instance
     /// </summary>
     public string BaseUri { get; set; }
-    
-    /// <summary>
-    /// Api version
-    /// </summary>
-    public string ApiVersion { get; set; }
 }

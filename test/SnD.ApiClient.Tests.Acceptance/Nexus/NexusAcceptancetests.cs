@@ -1,27 +1,28 @@
+using System;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using SnD.ApiClient.Crystal.Models.Base;
+using KiotaPosts.Client.Models.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SnD.ApiClient.Config;
-using SnD.ApiClient.Crystal.Base;
-using SnD.ApiClient.Extensions;
 using SnD.ApiClient.Azure;
+using SnD.ApiClient.Config;
+using SnD.ApiClient.Extensions;
+using SnD.ApiClient.Nexus.Base;
 using SnD.ApiClient.Tests.Acceptance.Config;
 using Xunit;
 
-namespace SnD.ApiClient.Tests.Acceptance.Crystal;
+namespace SnD.ApiClient.Tests.Acceptance.Nexus;
 
 
-public class AcceptanceTests
+public class NexusAcceptanceTests
 {
     private readonly AcceptanceTestsConfiguration configuration = new();
     private readonly ServiceProvider services;
 
-    public AcceptanceTests()
+    public NexusAcceptanceTests()
     {
 
         var configurationRoot = new ConfigurationBuilder().AddJsonFile("appsettings.test.json").Build();
@@ -32,32 +33,40 @@ public class AcceptanceTests
             .AddSingleton<HttpClient>()
             .AddLogging(conf => conf.AddConsole())
             .AuthorizeWithBoxerOnAzure()
-            .Configure<CrystalClientOptions>(configurationRoot.GetSection(nameof(CrystalClientOptions)))
-            .AddCrystalClient()
+            .AddAuthenticationProvider()
+            .Configure<NexusClientOptions>(configurationRoot.GetSection(nameof(NexusClientOptions)))
+            .AddNexusRetryPolicy()
+            .AddNexusClient()
             .BuildServiceProvider();
     }
     
     [SkippableFact]
     public async Task TestCanRunAlgorithm()
     {
-        Skip.If(string.IsNullOrEmpty(configuration.AlgorithmName) || configuration.AlgorithmPayload == null, "Algorithm payload and/or name is empty.");
+        Skip.If(string.IsNullOrEmpty(configuration.AlgorithmName) || configuration.AlgorithmRequest == null, "Algorithm payload and/or name is empty.");
         
-        var crystalConnector = this.services.GetRequiredService<ICrystalClient>();
-        var response = await crystalConnector.CreateRunAsync(
+        var nexusClient = this.services.GetRequiredService<INexusClient>();
+        var response = await nexusClient.CreateRunAsync(
+            this.configuration.AlgorithmRequest,
             configuration.AlgorithmName,
-            JsonDocument.Parse(configuration.AlgorithmPayload).RootElement,
-            configuration.AlgorithmConfiguration,
+            null,
+            null,
+            null,
+            null,
+            false,
             CancellationToken.None
         );
 
         Assert.NotNull(response);
         Assert.NotNull(response!.RequestId);
-        
-        RunResult runResult;
-        do
-        {
-            await Task.Delay(5000);
-            runResult = await crystalConnector.GetResultAsync(configuration.AlgorithmName, response!.RequestId);
-        } while (runResult != null && runResult.Status != RequestLifeCycleStage.COMPLETED);
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+        var runResult = await nexusClient.AwaitRunAsync(
+            response!.RequestId,
+            configuration.AlgorithmName,
+            TimeSpan.FromSeconds(2),
+            cts.Token);
+        Assert.NotNull(runResult);
+        Assert.True(nexusClient.IsFinished(runResult), "Run did not finish in expected time.");
     }
 }
