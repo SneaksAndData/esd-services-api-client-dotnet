@@ -1,5 +1,9 @@
+using System;
 using System.Net.Http;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
+using KiotaPosts.Client.Models.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -39,25 +43,30 @@ public class NexusAcceptanceTests
     [SkippableFact]
     public async Task TestCanRunAlgorithm()
     {
-        Skip.If(string.IsNullOrEmpty(configuration.AlgorithmName) || configuration.AlgorithmPayload == null, "Algorithm payload and/or name is empty.");
+        Skip.If(string.IsNullOrEmpty(configuration.AlgorithmName) || configuration.AlgorithmRequest == null, "Algorithm payload and/or name is empty.");
         
-        var crystalConnector = this.services.GetRequiredService<INexusClient>();
-        // var response = await crystalConnector.CreateRunAsync(
-        //     configuration.AlgorithmName,
-        //     JsonDocument.Parse(configuration.AlgorithmPayload).RootElement,
-        //     configuration.AlgorithmConfiguration,
-        //     CancellationToken.None
-        // );
+        var nexusClient = this.services.GetRequiredService<INexusClient>();
+        var response = await nexusClient.CreateRunAsync(
+            this.configuration.AlgorithmRequest,
+            configuration.AlgorithmName,
+            null,
+            null,
+            null,
+            null,
+            false,
+            CancellationToken.None
+        );
 
-        // Assert.NotNull(response);
-        // Assert.NotNull(response!.RequestId);
-        //
-        // RunResult runResult;
-        // do
-        // {
-        //     await Task.Delay(5000);
-        //     runResult = await crystalConnector.GetResultAsync(configuration.AlgorithmName, response!.RequestId);
-        // } while (runResult != null && runResult.Status != RequestLifeCycleStage.COMPLETED);
-        Assert.NotNull(crystalConnector);
+        Assert.NotNull(response);
+        Assert.NotNull(response!.RequestId);
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+        var runResult = await nexusClient.AwaitRunAsync(
+            response!.RequestId,
+            configuration.AlgorithmName,
+            TimeSpan.FromSeconds(2),
+            cts.Token);
+        Assert.NotNull(runResult);
+        Assert.True(nexusClient.IsFinished(runResult), "Run did not finish in expected time.");
     }
 }

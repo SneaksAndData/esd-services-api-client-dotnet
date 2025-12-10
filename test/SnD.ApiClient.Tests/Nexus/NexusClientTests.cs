@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using KiotaPosts.Client.Models.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Kiota.Http.HttpClientLibrary;
@@ -16,6 +15,7 @@ using SnD.ApiClient.Boxer.Base;
 using SnD.ApiClient.Config;
 using SnD.ApiClient.Nexus;
 using SnD.ApiClient.Nexus.Base;
+using SnD.ApiClient.Nexus.Models;
 using Xunit;
 
 namespace SnD.ApiClient.Tests.Nexus;
@@ -76,7 +76,13 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
 
         // Act
         await nexusClient.CreateRunAsync(
-            new AlgorithmRequest_algorithmParameters(),
+            NexusAlgorithmRequest.Create(
+                "{}",
+                null, 
+                null, 
+                null,
+                null,
+                null),
             algorithm,
             null,
             null,
