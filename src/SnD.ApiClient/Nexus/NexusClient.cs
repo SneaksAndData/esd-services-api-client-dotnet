@@ -8,17 +8,10 @@ using SnD.ApiClient.Nexus.Models;
 
 namespace SnD.ApiClient.Nexus;
 
-public class NexusClient : INexusClient
+public class NexusClient(IRequestAdapter adapter, ILogger<NexusClient> logger) : INexusClient
 {
-    private readonly NexusGeneratedClient client;
-    private readonly ILogger<NexusClient> logger;
-    
-    public NexusClient(IRequestAdapter adapter, ILogger<NexusClient> logger)
-    {
-        this.client = new NexusGeneratedClient(adapter);
-        this.logger = logger;
-    }
-    
+    private readonly NexusGeneratedClient client = new(adapter);
+
     public async Task<CreateRunResponse> CreateRunAsync(NexusAlgorithmRequest algorithmRequest,
         string algorithm,
         NexusAlgorithmSpec? customConfiguration,
@@ -93,8 +86,7 @@ public class NexusClient : INexusClient
             Reason = reason,
             CancellationPolicy = policy,
         };
-        await this.client.Algorithm.V1.Cancel[algorithm].Requests[requestId]
-            .PostAsync(request, null, cancellationToken);
+        await this.client.Algorithm.V1.Cancel[algorithm].Requests[requestId].PostAsync(request, null, cancellationToken);
     }
 
     public bool IsFinished(RequestResult result)
@@ -119,40 +111,49 @@ public class NexusClient : INexusClient
         return result.Status?.ToLowerInvariant() == "completed";
     }
 
-    private async Task<List<(string, string)>> GetRunsByTags(ICollection<string> tags, string? algorithmName,
+    private async Task<IEnumerable<(string, string)>> GetRunsByTags(ICollection<string> tags, string? algorithmName,
         CancellationToken cancellationToken)
     {
-        var ids = new List<(string, string)>();
-        foreach (var tag in tags)
-        {
-            var results = await this.client.Algorithm.V1.Results.Tags[tag].GetAsync(null, cancellationToken);
-            if (results == null)
+
+        var tasks = tags
+            .Select(async tag => (await this.client.Algorithm.V1.Results.Tags[tag].GetAsync(null, cancellationToken), tag))
+            .Select(async taskWithTag =>
             {
-                logger.LogWarning("No results found for tag {Tag}, skipping.", tag);
+                var (results, tag) = await taskWithTag;
+                if (results == null)
+                {
+                    logger.LogWarning("No results found for tag {Tag}", tag);
+                    return [];
+                }
+                return ExtractRequestId(results, tag, algorithmName);
+            });
+
+        var results = await Task.WhenAll(tasks);
+        return results.SelectMany(r => r);
+    }
+
+
+    private IEnumerable<(string, string)> ExtractRequestId(IEnumerable<TaggedRequestResult> results, string tag,
+        string? algorithmName)
+    {
+        foreach (var result in results)
+        {
+            if (result.RequestId == null)
+            {
+                logger.LogWarning("Tagged result with tag {Tag} has no RequestId, skipping.", tag);
                 continue;
             }
 
-            foreach (var result in results)
+            if (result.AlgorithmName == null)
             {
-                if (result.RequestId == null)
-                {
-                    logger.LogWarning("Tagged result with tag {Tag} has no RequestId, skipping.", tag);
-                    continue;
-                }
+                logger.LogWarning("Tagged result with tag {Tag} has no AlgorithmName, skipping.", tag);
+                continue;
+            }
 
-                if (result.AlgorithmName == null)
-                {
-                    logger.LogWarning("Tagged result with tag {Tag} has no AlgorithmName, skipping.", tag);
-                    continue;
-                }
-
-                if (algorithmName == null || result.AlgorithmName == algorithmName)
-                {
-                    ids.Add((result.AlgorithmName, result.RequestId));
-                }
+            if (algorithmName == null || result.AlgorithmName == algorithmName)
+            {
+                yield return (result.AlgorithmName, result.RequestId);
             }
         }
-
-        return ids;
     }
 }
