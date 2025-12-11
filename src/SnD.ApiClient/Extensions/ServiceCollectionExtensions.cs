@@ -97,19 +97,18 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Add Nexus Client to DI
     /// </summary>
-    public static IServiceCollection AddNexusRetryPolicy(this IServiceCollection services)
+    public static IServiceCollection AddNexusRetryPolicy(this IServiceCollection services, Func<IServiceProvider, RetryAllErrors> retryStrategyFactory)
     {
         return services.AddSingleton<IRequestAdapter>(sp =>
         {
             var authenticationProvider = sp.GetRequiredService<IAuthenticationProvider>();
             var nexusOptions = sp.GetRequiredService<IOptions<NexusClientOptions>>().Value;
-            var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(nexusOptions.BaseUri)
-            };
+            var retryStrategy = retryStrategyFactory(sp);
+            var retryOption = retryStrategy.ToRetryHandlerOption();
+            var httpClient = KiotaClientFactory.Create(optionsForHandlers: [retryOption]);
+            httpClient.BaseAddress = new Uri(nexusOptions.BaseUri);
             var baseAdapter = new HttpClientRequestAdapter(authenticationProvider, httpClient: httpClient);
-            var logger = sp.GetRequiredService<ILogger<RetryAdapter>>();
-            return new RetryAdapter(baseAdapter, logger);
+            return baseAdapter;
         });
     }
 }
