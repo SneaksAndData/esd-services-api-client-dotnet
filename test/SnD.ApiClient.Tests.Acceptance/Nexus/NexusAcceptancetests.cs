@@ -1,15 +1,16 @@
 using System;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using KiotaPosts.Client.Models.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SnD.ApiClient.Azure;
 using SnD.ApiClient.Config;
 using SnD.ApiClient.Extensions;
+using SnD.ApiClient.Nexus;
 using SnD.ApiClient.Nexus.Base;
 using SnD.ApiClient.Tests.Acceptance.Config;
 using Xunit;
@@ -35,7 +36,8 @@ public class NexusAcceptanceTests
             .AuthorizeWithBoxerOnAzure()
             .AddAuthenticationProvider()
             .Configure<NexusClientOptions>(configurationRoot.GetSection(nameof(NexusClientOptions)))
-            .AddNexusRetryPolicy()
+            .AddNexusRetryPolicy(sp => new RetryAllErrors(sp.GetRequiredService<ILogger<RetryAllErrors>>(),
+                sp.GetRequiredService<IOptions<NexusClientOptions>>()))
             .AddNexusClient()
             .BuildServiceProvider();
     }
@@ -43,11 +45,11 @@ public class NexusAcceptanceTests
     [SkippableFact]
     public async Task TestCanRunAlgorithm()
     {
-        Skip.If(string.IsNullOrEmpty(configuration.AlgorithmName) || configuration.AlgorithmRequest == null, "Algorithm payload and/or name is empty.");
+        Skip.If(string.IsNullOrEmpty(configuration.AlgorithmName) || configuration.AlgorithmPayload == null, "Algorithm payload and/or name is empty.");
         
         var nexusClient = this.services.GetRequiredService<INexusClient>();
         var response = await nexusClient.CreateRunAsync(
-            this.configuration.AlgorithmRequest,
+            (this.configuration.AlgorithmRequest?? new AlgorithmRequest()).ToNexusAlgorithmRequest(this.configuration.AlgorithmPayload),
             configuration.AlgorithmName,
             null,
             null,
