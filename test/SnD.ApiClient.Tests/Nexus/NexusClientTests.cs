@@ -5,10 +5,8 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using KiotaPosts.Client.Models.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Http.HttpClientLibrary;
 using Moq;
 using Moq.Protected;
@@ -17,6 +15,7 @@ using SnD.ApiClient.Boxer.Base;
 using SnD.ApiClient.Config;
 using SnD.ApiClient.Nexus;
 using SnD.ApiClient.Nexus.Base;
+using SnD.ApiClient.Nexus.Models;
 using Xunit;
 
 namespace SnD.ApiClient.Tests.Nexus;
@@ -50,17 +49,18 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
         var options = Options.Create(new NexusClientOptions
         {
             BaseUri = "http://www.example.com/",
-            ApiVersion = "v1"
+            MaxRetryAttempts = 5,
+            RetryIntervalSeconds = 1
         });
         var boxerAuthenticationProvider = new BoxerAuthenticationProvider(this.tokenProviderMock.Object);
-        this.nexusClient = new NexusClient(options,
-            loggerFixture.Factory.CreateLogger<NexusClient>(),
-            boxerAuthenticationProvider, () =>
-            {
-                var client = new HttpClient(handlerMock.Object);
-                client.BaseAddress = new Uri("http://www.example.com/");
-                return client;
-            });
+        var retryStrategy = new RetryAllErrors(loggerFixture.Factory.CreateLogger<RetryAllErrors>(), options);
+
+        var retryOption = retryStrategy.ToRetryHandlerOption();
+        var httpClient =
+            KiotaClientFactory.Create(optionsForHandlers: [retryOption], finalHandler: this.handlerMock.Object);
+        httpClient.BaseAddress = new Uri(options.Value.BaseUri);
+        var httpAdapter = new HttpClientRequestAdapter(boxerAuthenticationProvider, httpClient: httpClient);
+        this.nexusClient = new NexusClient(httpAdapter, loggerFixture.Factory.CreateLogger<NexusClient>());
     }
 
     [InlineData("algorithm", "http://www.example.com/algorithm/v1/run/algorithm?dryRun=False")]
@@ -81,7 +81,13 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
 
         // Act
         await nexusClient.CreateRunAsync(
-            new AlgorithmRequest_algorithmParameters(),
+            NexusAlgorithmRequest.Create(
+                "{}",
+                null,
+                null,
+                null,
+                null,
+                null),
             algorithm,
             null,
             null,

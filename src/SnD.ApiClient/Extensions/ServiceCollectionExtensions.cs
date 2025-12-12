@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Kiota.Abstractions;
+using Microsoft.Kiota.Abstractions.Authentication;
+using Microsoft.Kiota.Http.HttpClientLibrary;
 using SnD.ApiClient.Beast;
 using SnD.ApiClient.Beast.Base;
 using SnD.ApiClient.Boxer;
@@ -8,6 +11,8 @@ using SnD.ApiClient.Boxer.Base;
 using SnD.ApiClient.Config;
 using SnD.ApiClient.Crystal;
 using SnD.ApiClient.Crystal.Base;
+using SnD.ApiClient.Nexus;
+using SnD.ApiClient.Nexus.Base;
 
 namespace SnD.ApiClient.Extensions;
 
@@ -70,5 +75,40 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddBeastClient(this IServiceCollection services)
     {
         return services.AddSingleton<IBeastClient, BeastClient>();
+    }
+    
+    
+    /// <summary>
+    /// Add Authentication provider to DI
+    /// </summary>
+    public static IServiceCollection AddAuthenticationProvider(this IServiceCollection services)
+    {
+        return services.AddSingleton<IAuthenticationProvider, BoxerAuthenticationProvider>();
+    }
+
+    /// <summary>
+    /// Add Nexus Client to DI
+    /// </summary>
+    public static IServiceCollection AddNexusClient(this IServiceCollection services)
+    {
+        return services.AddSingleton<INexusClient, NexusClient>();
+    }
+    
+    /// <summary>
+    /// Add Nexus Client to DI
+    /// </summary>
+    public static IServiceCollection AddNexusRetryPolicy(this IServiceCollection services, Func<IServiceProvider, RetryAllErrors> retryStrategyFactory)
+    {
+        return services.AddSingleton<IRequestAdapter>(sp =>
+        {
+            var authenticationProvider = sp.GetRequiredService<IAuthenticationProvider>();
+            var nexusOptions = sp.GetRequiredService<IOptions<NexusClientOptions>>().Value;
+            var retryStrategy = retryStrategyFactory(sp);
+            var retryOption = retryStrategy.ToRetryHandlerOption();
+            var httpClient = KiotaClientFactory.Create(optionsForHandlers: [retryOption]);
+            httpClient.BaseAddress = new Uri(nexusOptions.BaseUri);
+            var baseAdapter = new HttpClientRequestAdapter(authenticationProvider, httpClient: httpClient);
+            return baseAdapter;
+        });
     }
 }

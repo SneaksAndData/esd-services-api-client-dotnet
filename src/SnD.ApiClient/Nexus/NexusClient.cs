@@ -2,10 +2,7 @@ using KiotaPosts.Client;
 using KiotaPosts.Client.Models.Models;
 using KiotaPosts.Client.Models.V1;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Kiota.Abstractions;
-using Microsoft.Kiota.Abstractions.Authentication;
-using SnD.ApiClient.Config;
 using SnD.ApiClient.Nexus.Base;
 using SnD.ApiClient.Nexus.Models;
 
@@ -22,13 +19,7 @@ public class NexusClient : INexusClient
         this.logger = logger;
     }
     
-    public NexusClient(IOptions<NexusClientOptions> options, ILogger<NexusClient> logger, IAuthenticationProvider authenticationProvider, Func<HttpClient> httpClientFactory)
-    {
-        this.client = new NexusGeneratedClient(options.ToRequestAdapter(authenticationProvider, httpClientFactory));
-        this.logger = logger;
-    }
-
-    public async Task<CreateRunResponse> CreateRunAsync(AlgorithmRequest_algorithmParameters algorithmParameters,
+    public async Task<CreateRunResponse> CreateRunAsync(NexusAlgorithmRequest algorithmRequest,
         string algorithm,
         NexusAlgorithmSpec? customConfiguration,
         AlgorithmRequestRef? parentRequest,
@@ -37,17 +28,8 @@ public class NexusClient : INexusClient
         bool dryRun,
         CancellationToken cancellationToken)
     {
-        var request = new AlgorithmRequest
-        {
-            AlgorithmParameters = algorithmParameters,
-            CustomConfiguration = customConfiguration,
-            ParentRequest = parentRequest,
-            Tag = tag,
-            PayloadValidFor = payloadValidFor
-        };
-
         var response = await this.client.Algorithm.V1.Run[algorithm]
-            .PostAsWithAlgorithmNamePostResponseAsync(request,
+            .PostAsWithAlgorithmNamePostResponseAsync(algorithmRequest,
                 config =>
                 {
                     config.QueryParameters.DryRun = dryRun.ToString();
