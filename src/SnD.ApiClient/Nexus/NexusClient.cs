@@ -123,7 +123,7 @@ public class NexusClient(IRequestAdapter adapter, ILogger<NexusClient> logger) :
                 var (results, tag) = await taskWithTag;
                 if (results == null)
                 {
-                    logger.LogWarning("No results found for tag {Tag}", tag);
+                    logger.LogWarning("No results found for tag {Tag}, skipping", tag);
                     return [];
                 }
                 return ExtractRequestId(results, tag, algorithmName);
@@ -132,7 +132,6 @@ public class NexusClient(IRequestAdapter adapter, ILogger<NexusClient> logger) :
         var results = await Task.WhenAll(tasks);
         return results.SelectMany(r => r);
     }
-
 
     private IEnumerable<(string, string)> ExtractRequestId(IEnumerable<TaggedRequestResult> results, string tag,
         string? algorithmName)
