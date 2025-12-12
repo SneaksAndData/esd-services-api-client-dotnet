@@ -117,6 +117,7 @@ public class NexusClient(IRequestAdapter adapter, ILogger<NexusClient> logger) :
 
         var tasks = tags
             .Select(async tag => (await this.client.Algorithm.V1.Results.Tags[tag].GetAsync(null, cancellationToken), tag))
+            .ToArray()
             .Select(async taskWithTag =>
             {
                 var (results, tag) = await taskWithTag;
