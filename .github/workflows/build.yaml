@@ -9,27 +9,47 @@ on:
 jobs:
   validate_commit:
     name: Validate commit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores-arm-public
+    
     if: ${{ github.ref != 'refs/heads/main' }}
 
     steps:
       - uses: actions/checkout@v4
+        
       - name: Setup .NET
         uses: actions/setup-dotnet@v5.0.1
         with:
           dotnet-version: 6.0.x
+          
+      - uses: extractions/setup-just@v3
+        
+      - name: Setup integration tests
+        run: just up
+        
       - name: Restore dependencies
         run: dotnet restore
+        
       - name: Build
         run: dotnet build --no-restore
+        
       - name: Test
         working-directory: ./test/SnD.ApiClient.Tests
         run: |
           dotnet add package coverlet.msbuild &&
           dotnet test SnD.ApiClient.Tests.csproj --configuration Debug --runtime linux-x64 /p:CollectCoverage=true /p:CoverletOutput=Coverage/ /p:CoverletOutputFormat=lcov --logger GitHubActions
+          
       - name: Publish Code Coverage
         if: ${{ github.event_name == 'pull_request' && always() }}
         uses: romeovs/lcov-reporter-action@v0.4.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           lcov-file: ./test/Coverage/coverage.info
+
+      - name: Get logs from application pods
+        if: always()
+        run: |
+          kubectl describe pods --namespace default || true
+          echo "============================= Logs from boxer-issuer =================================================="
+          kubectl logs -l app.kubernetes.io/name=boxer-issuer || true
+          echo "============================= Logs from boxer-validator-nginx =-======================================="
+          kubectl logs -l app.kubernetes.io/name=boxer-validator-nginx || true

@@ -387,3 +387,14 @@ FodyWeavers.xsd
 .idea/
 *.sln.iml
 *launchSettings.json
+
+# Integrationtest state files and generated directories
+/integration_tests/terraform/*/.terraform/
+/integration_tests/terraform/*/terraform.tfstate*
+/integration_tests/terraform/*/.terraform.lock.hcl
+
+# Codegen temporary files
+pkg/openapi.json*
+
+# Integration tsts dependency charts
+/integration_tests/helm/setup/charts/*.tgz
