@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using KiotaPosts.Client.Models.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Kiota.Http.HttpClientLibrary;
@@ -145,18 +146,45 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
     {
         // Arrange
         this.handlerMock.Protected()
-            .Setup<Task<HttpResponseMessage>>(
+            .SetupSequence<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.Is<HttpRequestMessage>(msg => msg.RequestUri.ToString().Contains("algorithm/v1/results/tags")),
                 ItExpr.IsAny<CancellationToken>()
             )
+            .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(new List<TaggedRequestResult>
+                    { new() { RequestId = "12345", AlgorithmName = algorithm } })
+            })
+            .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(new List<TaggedRequestResult>
+                    { new() { RequestId = "6789", AlgorithmName = algorithm } })
+            })
+            .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                // This response is for testing an unexpected algorithm name scenario
+                // Should not try to await this run
+                Content = JsonContent.Create(new List<TaggedRequestResult> { new() { RequestId = "6789", AlgorithmName = "UnknownAlgorithm" } })
+            });
+        
+            this.handlerMock.Protected()
+            .SetupSequence<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(msg => msg.RequestUri.ToString().Contains("results/algorithm/requests/")),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(new { status = "COMPLETED" })
+            })
             .ReturnsAsync(() => new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = JsonContent.Create(new { status = "COMPLETED" })
             });
 
         // Act
-        await nexusClient.AwaitTaggedRunsAsync(
+        var result = await nexusClient.AwaitTaggedRunsAsync(
             new List<string>
             {
                 "tag1",
@@ -181,6 +209,15 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
                 req.RequestUri.ToString() == expectedUrl2),
             ItExpr.IsAny<CancellationToken>()
         );
+        this.handlerMock.Protected().Verify(
+            "SendAsync",
+            Times.Exactly(2),
+            ItExpr.Is<HttpRequestMessage>(req =>
+                req.RequestUri.ToString().Contains("results/algorithm/requests/")),
+            ItExpr.IsAny<CancellationToken>()
+        );
+        this.handlerMock.VerifyNoOtherCalls();
+        Assert.Equal(2, result.Count);
     }
 
     [InlineData("algorithm", "http://www.example.com/algorithm/v1/metadata/algorithm/requests/12345")]
