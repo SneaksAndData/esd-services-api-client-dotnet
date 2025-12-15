@@ -116,11 +116,12 @@ public class NexusClient(IRequestAdapter adapter, ILogger<NexusClient> logger) :
     {
 
         var tasks = tags
-            .Select(async tag => (await this.client.Algorithm.V1.Results.Tags[tag].GetAsync(null, cancellationToken), tag))
+            .Select(tag => (this.client.Algorithm.V1.Results.Tags[tag].GetAsync(null, cancellationToken), tag))
             .ToArray()
             .Select(async taskWithTag =>
             {
-                var (results, tag) = await taskWithTag;
+                var (resultsTask, tag) = taskWithTag;
+                var results = await resultsTask;
                 if (results == null)
                 {
                     logger.LogWarning("No results found for tag {Tag}, skipping", tag);
