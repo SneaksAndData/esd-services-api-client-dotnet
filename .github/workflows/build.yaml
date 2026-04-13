@@ -43,4 +43,4 @@ jobs:
       - name: Test
         working-directory: ./test/SnD.ApiClient.Tests.Acceptance
         run: |
-          dotnet test SnD.ApiClient.Tests.Acceptance.csproj --configuration Debug --runtime linux-x64 --logger GitHubActions
+          dotnet test SnD.ApiClient.Tests.Acceptance.csproj --configuration Debug --runtime linux-x64
