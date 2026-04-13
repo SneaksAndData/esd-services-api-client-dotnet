@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Kiota.Abstractions.Authentication;
 using SnD.ApiClient.Azure;
-using SnD.ApiClient.Boxer;
 using SnD.ApiClient.Config;
 using SnD.ApiClient.Extensions;
 using SnD.ApiClient.Nexus;
@@ -31,18 +30,20 @@ public class NexusAcceptanceTests
         var configurationRoot = new ConfigurationBuilder().AddJsonFile("appsettings.test.json").Build();
         configurationRoot.GetSection(nameof(AcceptanceTestsConfiguration)).Bind(this.configuration);
 
-        this.services = new ServiceCollection()
+        var serviceCollection =  new ServiceCollection()
             .Configure<BoxerTokenProviderOptions>(configurationRoot.GetSection(nameof(BoxerTokenProviderOptions)))
             .AddSingleton<HttpClient>()
             .AddLogging(conf => conf.AddConsole())
-            // .AuthorizeWithBoxerOnAzure()
-            // .AddAuthenticationProvider()
-            .AddSingleton<IAuthenticationProvider, EmptyAuthenticationProvider>()
             .Configure<NexusClientOptions>(configurationRoot.GetSection(nameof(NexusClientOptions)))
             .AddNexusRetryPolicy(sp => new RetryAllErrors(sp.GetRequiredService<ILogger<RetryAllErrors>>(),
                 sp.GetRequiredService<IOptions<NexusClientOptions>>()))
-            .AddNexusClient()
-            .BuildServiceProvider();
+            .AddNexusClient();
+
+        serviceCollection = configuration.UseBoxerTokenProviderOnAzure
+            ? serviceCollection.AuthorizeWithBoxerOnAzure().AddAuthenticationProvider()
+            : serviceCollection.AddSingleton<IAuthenticationProvider, EmptyAuthenticationProvider>();
+            
+        this.services = serviceCollection.BuildServiceProvider();
     }
     
     [SkippableFact]
