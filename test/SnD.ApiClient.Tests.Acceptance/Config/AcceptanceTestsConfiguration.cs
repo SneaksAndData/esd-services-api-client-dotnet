@@ -18,4 +18,10 @@ public class AcceptanceTestsConfiguration
     /// Payload serialized to string
     /// </summary>
     public string AlgorithmPayload { get; set; }
+    
+    /// <summary>
+    /// Use BoxerTokenProvider as authentication provider for NexusClient on Azure environment.
+    /// If false will add EmptyTokenProvider which does not interact with Boxer.
+    /// </summary>
+    public bool UseBoxerTokenProviderOnAzure { get; set; }
 }
