@@ -3,8 +3,7 @@ updates:
   - package-ecosystem: "nuget"
     directory: "src/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "daily"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
