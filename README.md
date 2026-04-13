@@ -59,10 +59,10 @@ dotnet nuget add source --username $USERNAME --password $GITHUB_TOKEN \
 The acceptance test `test/SnD.ApiClient.Tests.Acceptance/Nexus/NexusAcceptancetests.cs` shows the full runtime flow:
 
 1. Resolve `INexusClient` from DI.
-2. Build a `NexusAlgorithmRequest` (typically from `AlgorithmRequest` + JSON payload).
+2. Build a `NexusAlgorithmRequest` with the algorithm payload and other parameters.
 3. Call `CreateRunAsync(...)` to submit the run.
 4. Use `AwaitRunAsync(...)` with a polling interval and cancellation timeout.
-5. Check final state with `IsFinished(...)` and optionally `HasSucceeded(...)`.
+5. Check final state with `IsFinished(...)` and optionally `HasSucceeded(...)` if to validate success vs failure.
 
 ```csharp
 using System;
