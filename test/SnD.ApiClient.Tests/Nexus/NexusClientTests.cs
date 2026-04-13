@@ -90,10 +90,6 @@ public class NexusClientTests : IClassFixture<MockServiceFixture>, IClassFixture
                 null,
                 null),
             algorithm,
-            null,
-            null,
-            null,
-            null,
             false,
             CancellationToken.None);
 

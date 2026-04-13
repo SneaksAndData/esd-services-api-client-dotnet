@@ -1,6 +1,5 @@
 using KiotaPosts.Client;
 using KiotaPosts.Client.Models.Models;
-using KiotaPosts.Client.Models.V1;
 using Microsoft.Extensions.Logging;
 using Microsoft.Kiota.Abstractions;
 using SnD.ApiClient.Nexus.Base;
@@ -14,10 +13,6 @@ public class NexusClient(IRequestAdapter adapter, ILogger<NexusClient> logger) :
 
     public async Task<CreateRunResponse> CreateRunAsync(NexusAlgorithmRequest algorithmRequest,
         string algorithm,
-        NexusAlgorithmSpec? customConfiguration,
-        AlgorithmRequestRef? parentRequest,
-        string? tag,
-        string? payloadValidFor,
         bool dryRun,
         CancellationToken cancellationToken)
     {
