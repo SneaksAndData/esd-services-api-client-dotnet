@@ -22,7 +22,7 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build --no-restore
-      - name: Test
+      - name: Run unit tests
         working-directory: ./test/SnD.ApiClient.Tests
         run: |
           dotnet add package coverlet.msbuild &&
@@ -33,3 +33,19 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           lcov-file: ./test/Coverage/coverage.info
+
+      - name: Setup just
+        uses: extractions/setup-just@v3
+
+      - name: Setup integration tests
+        run: just up
+        
+      - name: Run acceptance tests
+        working-directory: ./test/SnD.ApiClient.Tests.Acceptance
+        run: |
+          dotnet test SnD.ApiClient.Tests.Acceptance.csproj --configuration Debug --runtime linux-x64
+          
+      - name: Get logs from application pods
+        if: always()
+        run: |
+          kubectl describe pods --namespace default || true
