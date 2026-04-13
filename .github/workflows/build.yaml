@@ -33,3 +33,14 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           lcov-file: ./test/Coverage/coverage.info
+
+      - name: Setup just
+        uses: extractions/setup-just@v3
+
+      - name: Setup integration tests
+        run: just up
+        
+      - name: Test
+        working-directory: ./test/SnD.ApiClient.Tests.Acceptance
+        run: |
+          dotnet test SnD.ApiClient.Tests.Acceptance.csproj --configuration Debug --runtime linux-x64 --logger GitHubActions

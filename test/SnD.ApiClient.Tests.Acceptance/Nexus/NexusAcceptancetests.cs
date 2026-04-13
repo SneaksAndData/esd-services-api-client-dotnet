@@ -7,7 +7,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Kiota.Abstractions.Authentication;
 using SnD.ApiClient.Azure;
+using SnD.ApiClient.Boxer;
 using SnD.ApiClient.Config;
 using SnD.ApiClient.Extensions;
 using SnD.ApiClient.Nexus;
@@ -33,8 +35,9 @@ public class NexusAcceptanceTests
             .Configure<BoxerTokenProviderOptions>(configurationRoot.GetSection(nameof(BoxerTokenProviderOptions)))
             .AddSingleton<HttpClient>()
             .AddLogging(conf => conf.AddConsole())
-            .AuthorizeWithBoxerOnAzure()
-            .AddAuthenticationProvider()
+            // .AuthorizeWithBoxerOnAzure()
+            // .AddAuthenticationProvider()
+            .AddSingleton<IAuthenticationProvider, EmptyAuthenticationProvider>()
             .Configure<NexusClientOptions>(configurationRoot.GetSection(nameof(NexusClientOptions)))
             .AddNexusRetryPolicy(sp => new RetryAllErrors(sp.GetRequiredService<ILogger<RetryAllErrors>>(),
                 sp.GetRequiredService<IOptions<NexusClientOptions>>()))
