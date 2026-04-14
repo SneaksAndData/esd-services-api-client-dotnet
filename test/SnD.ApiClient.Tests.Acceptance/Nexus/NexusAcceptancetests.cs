@@ -56,9 +56,9 @@ public class NexusAcceptanceTests
             this.configuration.AlgorithmPayload,
             customConfiguration: null,
             parentRequest: null,
-            payloadValidFor: null,
+            payloadValidFor: "6h",
             requestApiVersion: null,
-            "example"
+            tag: "example"
         );
         var nexusClient = this.services.GetRequiredService<INexusClient>();
         var response = await nexusClient.CreateRunAsync(

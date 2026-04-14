@@ -81,9 +81,9 @@ var request = NexusAlgorithmRequest.Create(
             this.configuration.AlgorithmPayload,
             customConfiguration: null,
             parentRequest: null,
-            payloadValidFor: null,
+            payloadValidFor: "6h",
             requestApiVersion: null,
-            "example"
+            tag: "example"
 );
 
 // Use a bounded timeout so await does not run forever.
