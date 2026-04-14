@@ -1,5 +1,4 @@
 ﻿using KiotaPosts.Client.Models.Models;
-using KiotaPosts.Client.Models.V1;
 using SnD.ApiClient.Nexus.Models;
 
 namespace SnD.ApiClient.Nexus.Base;
@@ -11,20 +10,11 @@ public interface INexusClient
     /// </summary>
     /// <param name="algorithmRequest">Algorithm parameters as JsonElement</param>
     /// <param name="algorithm">Algorithm name</param>
-    /// <param name="customConfiguration">Custom configuration for algorithm run</param>
-    /// <param name="parentRequest">Optional Parent request reference, if applicable. Specifying a parent request allows
-    ///     indirect cancellation of the submission - via cancellation of a parent.</param>
-    /// <param name="tag">Client side assigned run tag.</param>
-    /// <param name="payloadValidFor">Payload pre-signed URL validity period.</param>
     /// <param name="dryRun">Dry run, if set to True, will only buffer a submission but skip job creation.</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Instance of object <see cref="CreateRunResponse"/> with run ID</returns>
     Task<CreateRunResponse> CreateRunAsync(NexusAlgorithmRequest algorithmRequest,
         string algorithm,
-        NexusAlgorithmSpec? customConfiguration,
-        AlgorithmRequestRef? parentRequest,
-        string? tag,
-        string? payloadValidFor,
         bool dryRun,
         CancellationToken cancellationToken);
 

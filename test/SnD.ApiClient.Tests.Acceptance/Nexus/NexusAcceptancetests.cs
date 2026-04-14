@@ -2,7 +2,6 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using KiotaPosts.Client.Models.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,6 +12,7 @@ using SnD.ApiClient.Config;
 using SnD.ApiClient.Extensions;
 using SnD.ApiClient.Nexus;
 using SnD.ApiClient.Nexus.Base;
+using SnD.ApiClient.Nexus.Models;
 using SnD.ApiClient.Tests.Acceptance.Config;
 using Xunit;
 
@@ -50,15 +50,19 @@ public class NexusAcceptanceTests
     public async Task TestCanRunAlgorithm()
     {
         Skip.If(string.IsNullOrEmpty(configuration.AlgorithmName) || configuration.AlgorithmPayload == null, "Algorithm payload and/or name is empty.");
-        
+
+        var request = NexusAlgorithmRequest.Create(
+            this.configuration.AlgorithmPayload,
+            customConfiguration: null,
+            parentRequest: null,
+            payloadValidFor: "6h",
+            requestApiVersion: null,
+            tag: "example"
+        );
         var nexusClient = this.services.GetRequiredService<INexusClient>();
         var response = await nexusClient.CreateRunAsync(
-            (this.configuration.AlgorithmRequest?? new AlgorithmRequest()).ToNexusAlgorithmRequest(this.configuration.AlgorithmPayload),
+            request,
             configuration.AlgorithmName,
-            null,
-            null,
-            null,
-            null,
             false,
             CancellationToken.None
         );
@@ -72,7 +76,9 @@ public class NexusAcceptanceTests
             configuration.AlgorithmName,
             TimeSpan.FromSeconds(2),
             cts.Token);
+        
         Assert.NotNull(runResult);
         Assert.True(nexusClient.IsFinished(runResult), "Run did not finish in expected time.");
+        Assert.True(nexusClient.HasSucceeded(runResult), runResult.RunErrorMessage);
     }
 }
