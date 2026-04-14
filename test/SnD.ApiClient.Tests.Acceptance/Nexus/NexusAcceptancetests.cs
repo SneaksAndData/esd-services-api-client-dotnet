@@ -76,7 +76,9 @@ public class NexusAcceptanceTests
             configuration.AlgorithmName,
             TimeSpan.FromSeconds(2),
             cts.Token);
+        
         Assert.NotNull(runResult);
         Assert.True(nexusClient.IsFinished(runResult), "Run did not finish in expected time.");
+        Assert.True(nexusClient.HasSucceeded(runResult), runResult.RunErrorMessage);
     }
 }

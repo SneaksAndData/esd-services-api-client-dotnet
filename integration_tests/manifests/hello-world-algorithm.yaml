@@ -19,7 +19,7 @@ spec:
     image: nexus-hello
     registry: ghcr.io/sneaksanddata
     serviceAccountName: nexus
-    versionTag: 0.1.2
+    versionTag: 0.1.2-4-g181d908
   datadogIntegrationSettings:
     mountDatadogSocket: true
   errorHandlingBehaviour:
@@ -34,32 +34,38 @@ spec:
         valueFrom:
           fieldRef:
             fieldPath: status.hostIP
-      - name: PROTEUS__DD_SITE
-        value: datadoghq.eu
-      - name: NEXUS__ALGORITHM_NAME
-        value: nexus-hello
-      - name: NEXUS__SCHEDULER_URL
-        value: http://nexus.nexus.svc.cluster.local:8080
-      - name: NEXUS__RECEIVER_URL
-        value: http://dockerhost.nexus.svc.cluster.local:8081
-      - name: NEXUS__STORAGE_CLIENT_CLASS
-        value: adapta.storage.blob.s3_storage_client.S3StorageClient
-      - name: ALGORITHM_STORAGE__BASE_PATH
-        value: s3a://nexus/storage
-      - name: NEXUS__ALGORITHM_OUTPUT_PATH
-        value: s3a://nexus/result
-      - name: NEXUS__TELEMETRY_PATH
-        value: s3a://nexus/telemetry
-      - name: ALGORITHM_STORAGE_TYPE
-        value: S3
+      - name: NEXUS__CLIENT__SCHEDULER
+        value: http://nexus.default.svc.cluster.local:8080
+      - name: NEXUS__CLIENT__SCHEDULER_ACCESS_TOKEN
+        value: ""
+      - name: NEXUS__CLIENT__RECEIVER
+        value: http://nexus-receiver.default.svc.cluster.local:8080
       - name: PROTEUS__AWS_REGION
         value: us-east-1
       - name: PROTEUS__AWS_ENDPOINT
-        value: http://dockerhost.nexus.svc.cluster.local:9000
+        value: http://minio.default.svc.cluster.local:9000
       - name: PROTEUS__AWS_SECRET_ACCESS_KEY
         value: minioadmin
       - name: PROTEUS__AWS_ACCESS_KEY_ID
         value: minioadmin
+      - name: NEXUS__METRICS__PROVIDER
+        value: adapta.metrics.providers.void_provider.VoidMetricsProvider
+      - name: NEXUS__RESULT__STORAGE_CLIENT_CLASS
+        value: adapta.storage.blob.s3_storage_client.S3StorageClient
+      - name: NEXUS__RESULT__OUTPUT_PATH
+        value: s3a://nexus-sdk-tests
+      - name: NEXUS__REMOTE_ALGORITHM__COMPRESSION_IMPORT_PATH
+        value: ""
+      - name: NEXUS__REMOTE_ALGORITHM__DECOMPRESSION_IMPORT_PATH
+        value: ""
+      - name: NEXUS__INPUTS__QUERY_ENABLED_STORE__CONNECTION_STRING
+        value: ""
+      - name: NEXUS__THREADING__BLOCKING_POOL_MAX_SIZE
+        value: '10'
+      - name: NEXUS__LOGGING__DATADOG__ENABLED
+        value: '0'
+      - name: NEXUS__LOGGING__FIXED_TEMPLATE
+        value: ''
     mappedEnvironmentVariables: []
     maximumRetries: 1
   workgroupRef:
