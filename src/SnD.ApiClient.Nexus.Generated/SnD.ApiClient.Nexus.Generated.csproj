@@ -2,8 +2,18 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <RootNamespace>SnD.ApiClient.Nexus.Generated</RootNamespace>
+        <OutputType>Library</OutputType>
+        <PackageId>SnD.ApiClient.Nexus.Generated</PackageId>
+        <Authors>Sneaks&amp;Data</Authors>
+        <Version>0.0.0</Version>
+        <Company>Sneaks&amp;Data</Company>
+        <RepositoryUrl>https://github.com/SneaksAndData/esd-services-api-client-dotnet</RepositoryUrl>
+        <PackageDescription>Client libraries for Sneaks&amp;Data services</PackageDescription>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
