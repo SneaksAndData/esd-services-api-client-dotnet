@@ -14,7 +14,6 @@
         <RepositoryUrl>https://github.com/SneaksAndData/esd-services-api-client-dotnet</RepositoryUrl>
         <PackageDescription>Client libraries for Sneaks&amp;Data services</PackageDescription>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
