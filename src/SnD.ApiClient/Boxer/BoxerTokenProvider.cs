@@ -40,25 +40,23 @@ public class BoxerTokenProvider : IJwtTokenExchangeProvider
    public async Task<string> GetTokenAsync(bool refresh, CancellationToken cancellationToken)
    {
       cancellationToken.ThrowIfCancellationRequested();
-      if (this.token != null && !refresh)
+      if (this.token == null || refresh)
       {
-         return this.token;
+         var response = await Policy
+            .Handle<HttpRequestException>()
+            .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
+            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+            .ExecuteAsync(async () =>
+            {
+               var externalToken = await this.getExternalTokenAsync(cancellationToken);
+               this.logger.LogInformation("Received external authentication token");
+               var request = new HttpRequestMessage(HttpMethod.Get, new Uri(baseUri, authProvider));
+               request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+               return await httpClient.SendAsync(request, cancellationToken);
+            });
+         this.token = await response.Content.ReadAsStringAsync(cancellationToken);
+         this.logger.LogInformation("Received boxer token");
       }
-      
-      var response = await Policy
-         .Handle<HttpRequestException>()
-         .OrResult<HttpResponseMessage>(r => !r.IsSuccessStatusCode)
-         .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
-         .ExecuteAsync(async () =>
-         {
-            var externalToken = await this.getExternalTokenAsync(cancellationToken);
-            this.logger.LogInformation("Received external authentication token");
-            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(baseUri, authProvider));
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
-            return await httpClient.SendAsync(request, cancellationToken);
-         });
-      this.token = await response.Content.ReadAsStringAsync(cancellationToken);
-      this.logger.LogInformation("Received boxer token");
       return this.token;
    }
 }
