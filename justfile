@@ -4,6 +4,7 @@ default:
 fresh: stop up
 
 up: start-kind-cluster \
+    build-deps \
     install-ingress-controller \
     create-ingress \
     scylla \
@@ -25,6 +26,9 @@ stop:
 
 start-kind-cluster:
     kind create cluster --config=integration_tests/kind.yaml
+
+build-deps:
+    helm dependency build ./integration_tests/helm/setup
 
 install-ingress-controller:
     kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
