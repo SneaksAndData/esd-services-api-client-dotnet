@@ -11,7 +11,7 @@ public class BoxerTokenProvider : IJwtTokenExchangeProvider
 {
    private readonly Uri authProvider;
    private readonly Uri baseUri;
-   private string token;
+   private string? token;
    private readonly HttpClient httpClient;
    private readonly ILogger logger;
    private readonly Func<CancellationToken, Task<string>> getExternalTokenAsync;
@@ -28,7 +28,7 @@ public class BoxerTokenProvider : IJwtTokenExchangeProvider
    {
       var authorizationProvider = boxerTokenProviderOptions.Value.IdentityProvider
                                   ?? throw new ArgumentNullException(nameof(BoxerTokenProviderOptions.IdentityProvider));
-      this.authProvider = new Uri($"token/{authorizationProvider}", UriKind.Relative);
+      this.authProvider = new Uri($"api/v1/token/{authorizationProvider}", UriKind.Relative);
       this.baseUri = new Uri(boxerTokenProviderOptions.Value.BaseUri
                              ?? throw new ArgumentException(nameof(BoxerTokenProviderOptions.BaseUri)));
       this.httpClient = httpClient;
@@ -54,7 +54,7 @@ public class BoxerTokenProvider : IJwtTokenExchangeProvider
                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
                return await httpClient.SendAsync(request, cancellationToken);
             });
-         this.token = await response.Content.ReadAsStringAsync();
+         this.token = await response.Content.ReadAsStringAsync(cancellationToken);
          this.logger.LogInformation("Received boxer token");
       }
       return this.token;

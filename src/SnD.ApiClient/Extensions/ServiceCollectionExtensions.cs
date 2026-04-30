@@ -4,13 +4,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.Kiota.Abstractions;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Http.HttpClientLibrary;
-using SnD.ApiClient.Beast;
-using SnD.ApiClient.Beast.Base;
 using SnD.ApiClient.Boxer;
 using SnD.ApiClient.Boxer.Base;
 using SnD.ApiClient.Config;
-using SnD.ApiClient.Crystal;
-using SnD.ApiClient.Crystal.Base;
 using SnD.ApiClient.Nexus;
 using SnD.ApiClient.Nexus.Base;
 
@@ -52,32 +48,7 @@ public static class ServiceCollectionExtensions
             return Task.FromResult(File.ReadAllText("/var/run/secrets/kubernetes.io/serviceaccount/token"));
         });
     }
-    
-    /// <summary>
-    /// Add Crystal connector to DI
-    /// </summary>
-    public static IServiceCollection AddCrystalClient(this IServiceCollection services)
-    {
-        return services.AddSingleton<ICrystalClient, CrystalClient>();
-    }
-    
-    /// <summary>
-    /// Add Boxer Claims Client to DI
-    /// </summary>
-    public static IServiceCollection AddBoxerClaimsClient(this IServiceCollection services)
-    {
-        return services.AddSingleton<IBoxerClaimsClient, BoxerClaimsClient>();
-    }
-    
-    /// <summary>
-    /// Add Beast Client to DI
-    /// </summary>
-    public static IServiceCollection AddBeastClient(this IServiceCollection services)
-    {
-        return services.AddSingleton<IBeastClient, BeastClient>();
-    }
-    
-    
+
     /// <summary>
     /// Add Authentication provider to DI
     /// </summary>
