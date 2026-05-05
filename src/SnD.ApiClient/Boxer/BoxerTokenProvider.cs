@@ -54,6 +54,7 @@ public class BoxerTokenProvider : IJwtTokenExchangeProvider
                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
                return await httpClient.SendAsync(request, cancellationToken);
             });
+         response.EnsureSuccessStatusCode();
          this.token = await response.Content.ReadAsStringAsync(cancellationToken);
          this.logger.LogInformation("Received boxer token");
       }
