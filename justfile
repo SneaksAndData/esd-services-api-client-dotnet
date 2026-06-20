@@ -4,6 +4,7 @@ default:
 fresh: stop up
 
 up: start-kind-cluster \
+    build-deps \
     install-ingress-controller \
     create-ingress \
     scylla \
@@ -15,13 +16,19 @@ up: start-kind-cluster \
     receiver \
     supervisor \
     minio \
-    wait-for-services
+    boxer \
+    keycloak \
+    wait-for-services \
+    keycloak-configuration
 
 stop:
     kind delete cluster
 
 start-kind-cluster:
     kind create cluster --config=integration_tests/kind.yaml
+
+build-deps:
+    helm dependency build ./integration_tests/helm/setup
 
 install-ingress-controller:
     kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/deploy-ingress-nginx.yaml
@@ -88,11 +95,42 @@ supervisor:
       --set 'supervisor.config.cqlStore.secretRefEnabled=true' \
       --set 'supervisor.config.cqlStore.secretName=cassandra-credentials' \
       --set 'supervisor.config.resourceNamespace=default'
+      
+
+key := `openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1`
+boxer:
+    helm upgrade --install --namespace default integration-tests integration_tests/helm/setup \
+      --set boxer-issuer.issuer.replicas=1 \
+      --set-literal 'boxer-validator-nginx.validator.config.tokenSettings.keys={"default": "{{key}}"}' \
+      --set 'boxer-issuer.issuer.config.listenIp=0.0.0.0' \
+      --set 'boxer-issuer.issuer.config.logLevel=debug' \
+      --set 'boxer-issuer.issuer.config.backend.kubernetes.resourceOwnerLabel=application/boxer-issuer' \
+      --set 'boxer-validator-nginx.validator.config.listenIp=0.0.0.0' \
+      --set 'boxer-validator-nginx.validator.config.backend.kubernetes.resourceOwnerLabel=application/boxer-validator-nginx' \
+      --set boxer-validator-nginx.validator.replicas=1
+
+keycloak:
+    helm upgrade --install keycloak oci://ghcr.io/codecentric/helm-charts/keycloakx \
+      --set keycloak.username=admin \
+      --set keycloak.password=admin \
+      --values ./integration_tests/keycloak.yaml
 
 wait-for-services:
     kubectl rollout status deployment/nexus --timeout=180s
     kubectl rollout status deployment/nexus-receiver --timeout=180s
     kubectl rollout status deployment/nexus-supervisor --timeout=180s
+    kubectl rollout status deployment/boxer-issuer --timeout=180s
+    kubectl rollout status deployment/boxer-validator-nginx --timeout=180s
+    
+keycloak-configuration:
+    # Wait a bit for Keycloak to be ready to accept admin commands
+    sleep 10
+
+    # Create realm, client, and user for tests
+    docker run --rm --network=host -v $(pwd)/integration_tests/terraform/keycloak:/tofu --workdir /tofu ghcr.io/opentofu/opentofu:latest init
+    docker run --rm --network=host -v $(pwd)/integration_tests/terraform/keycloak:/tofu --workdir /tofu ghcr.io/opentofu/opentofu:latest plan
+    docker run --rm --network=host -v $(pwd)/integration_tests/terraform/keycloak:/tofu --workdir /tofu ghcr.io/opentofu/opentofu:latest apply -auto-approve
+
 
 dbschema:
   docker run --rm -v $(pwd)/integration_tests/storage:/opt/storage --network=host --entrypoint /opt/storage/prepare-scylla.sh scylladb/scylla:5.0.1

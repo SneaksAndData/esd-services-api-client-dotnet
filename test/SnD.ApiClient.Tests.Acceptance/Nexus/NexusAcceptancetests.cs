@@ -35,8 +35,7 @@ public class NexusAcceptanceTests
             .AddSingleton<HttpClient>()
             .AddLogging(conf => conf.AddConsole())
             .Configure<NexusClientOptions>(configurationRoot.GetSection(nameof(NexusClientOptions)))
-            .AddNexusRetryPolicy(sp => new RetryAllErrors(sp.GetRequiredService<ILogger<RetryAllErrors>>(),
-                sp.GetRequiredService<IOptions<NexusClientOptions>>()))
+            .AddNexusRetryPolicy(sp => new RetryAllErrors(sp.GetRequiredService<ILogger<RetryAllErrors>>(), sp.GetRequiredService<IOptions<NexusClientOptions>>()))
             .AddNexusClient();
 
         serviceCollection = configuration.UseBoxerTokenProviderOnAzure
